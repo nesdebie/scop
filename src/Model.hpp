@@ -1,25 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   obj_loader.hpp                                     :+:      :+:    :+:   */
+/*   Model.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/15 20:44:00 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/15 20:52:25 by nesdebie         ###   ########.fr       */
+/*   Created: 2025/04/16 08:19:19 by nesdebie          #+#    #+#             */
+/*   Updated: 2025/04/16 08:37:52 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include <vector>
 #include <string>
-#include <glm/glm.hpp>
+#include "../glm/glm/glm.hpp"
 
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
+    glm::vec2 texCoord;
 };
 
-bool loadOBJ(const std::string& path,
-             std::vector<Vertex>& outVertices,
-             std::vector<unsigned int>& outIndices);
+class Model {
+public:
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec2> texCoords;
+    std::vector<unsigned int> indices;
+
+    bool loadFromOBJ(const std::string& path);
+};
