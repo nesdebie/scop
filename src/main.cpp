@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/15 10:51:19 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/16 09:07:52 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/16 11:00:15 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 
-	// Check if the file exists
 	std::ifstream file(argv[1]);
 	if (!file.is_open())
 	{

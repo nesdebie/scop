@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/16 08:19:38 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/16 09:19:44 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/16 11:34:47 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ bool Model::loadFromOBJ(const std::string& path) {
     std::vector<glm::vec2> temp_texCoords;
     std::vector<glm::vec3> temp_normals;
 
+    std::string currentMaterial; // To track the current material
     std::string line;
     while (std::getline(file, line)) {
         std::istringstream ss(line);
@@ -64,7 +65,24 @@ bool Model::loadFromOBJ(const std::string& path) {
                 normals.push_back(temp_normals[ni[i] - 1]);
                 indices.push_back(indices.size());
             }
-            std::cout << "Face parsed successfully." << std::endl;
+            std::cout << "Face parsed successfully with material: " << currentMaterial << std::endl;
+        } else if (prefix == "usemtl") {
+            ss >> currentMaterial;
+            std::cout << "Using material: " << currentMaterial << std::endl;
+        } else if (prefix == "mtllib") {
+            std::string materialFile;
+            ss >> materialFile;
+            std::cout << "Material library: " << materialFile << std::endl;
+        } else if (prefix == "s") {
+            std::string shading;
+            ss >> shading;
+            if (shading == "off") {
+                std::cout << "Smoothing group: off" << std::endl;
+            } else {
+                std::cout << "Smoothing group: " << shading << std::endl;
+            }
+        } else {
+            std::cout << "Skipping unrecognized line: " << line << std::endl;
         }
     }
 
