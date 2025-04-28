@@ -17,7 +17,6 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    std::cout << "RENDERING" << std::endl;
     VulkanRenderer renderer;
     if (!renderer.init(vertices, indices)) {
         std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;

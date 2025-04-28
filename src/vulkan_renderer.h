@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/28 09:04:52 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/28 15:34:25 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@ private:
 
     // Window
     GLFWwindow* window;
-    const int WIDTH = 800;
-    const int HEIGHT = 600;
+    const int WIDTH = 1600;
+    const int HEIGHT = 1200;
 
     // Vulkan
     VkInstance instance;
