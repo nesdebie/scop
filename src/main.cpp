@@ -10,7 +10,6 @@ int main(int argc, char** argv) {
 
     const char* objPath = argv[1];
 
-    // Parse the OBJ file
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     if (!loadOBJ(objPath, vertices, indices)) {
@@ -18,17 +17,15 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    // Create the Vulkan renderer
+    std::cout << "RENDERING" << std::endl;
     VulkanRenderer renderer;
     if (!renderer.init(vertices, indices)) {
         std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;
         return -1;
     }
 
-    // Main loop
     renderer.run();
 
-    // Cleanup
     renderer.cleanup();
 
     return 0;

@@ -6,17 +6,18 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/28 08:37:24 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/28 09:04:52 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// vulkan_renderer.h
-#pragma once
+#ifndef VULKAN_RENDERER_H
+# define VULKAN_RENDERER_H
 
-#include "vertex.h"
-#include <vector>
-#include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
+# include <vector>
+# include <vulkan/vulkan.h>
+# include <GLFW/glfw3.h>
+
+# include "vertex.h"
 
 class VulkanRenderer {
 public:
@@ -50,3 +51,4 @@ private:
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
 };
+#endif

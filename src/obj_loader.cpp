@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/28 08:42:02 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/28 11:22:23 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,10 +41,17 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
 
     std::string line;
     while (std::getline(file, line)) {
+        if (file.eof())
+            break;
+        if (line.empty() || line.find_first_not_of(" \t\r\n") == std::string::npos)
+            continue;
         std::istringstream iss(line);
         std::string prefix;
         iss >> prefix;
-
+    
+        if (prefix.empty())
+            continue; // Skip if no prefix was read
+    
         if (prefix == "v") {
             glm::vec3 pos;
             iss >> pos.x >> pos.y >> pos.z;
@@ -55,30 +62,59 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
             temp_normals.push_back(normal);
         } else if (prefix == "f") {
             std::string vertexString;
-            for (int i = 0; i < 3; i++) { // assume triangles
-                iss >> vertexString;
-
+            int verticesInFace = 0;
+            while (iss >> vertexString) {
+                verticesInFace++;
+        
                 std::istringstream vss(vertexString);
                 std::string idxPos, idxTex, idxNorm;
                 std::getline(vss, idxPos, '/');
                 std::getline(vss, idxTex, '/');
                 std::getline(vss, idxNorm, '/');
-
-                int posIdx = std::stoi(idxPos) - 1;
-                int normIdx = idxNorm.empty() ? -1 : (std::stoi(idxNorm) - 1);
-
+        
+                if (idxPos.empty())
+                    continue; // No vertex position? skip
+        
+                int posIdx = -1;
+                try {
+                    posIdx = std::stoi(idxPos) - 1;
+                } catch (...) {
+                    std::cerr << "Invalid position index: " << idxPos << std::endl;
+                    continue;
+                }
+        
+                int normIdx = -1;
+                if (!idxNorm.empty()) {
+                    try {
+                        normIdx = std::stoi(idxNorm) - 1;
+                    } catch (...) {
+                        std::cerr << "Invalid normal index: " << idxNorm << std::endl;
+                        normIdx = -1;
+                    }
+                }
+        
+                if (posIdx < 0 || posIdx >= (int)temp_positions.size()) {
+                    std::cerr << "Position index out of bounds: " << posIdx << std::endl;
+                    continue;
+                }
+        
                 Vertex vertex = {};
                 vertex.position = temp_positions[posIdx];
-                vertex.normal = normIdx >= 0 ? temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
-
+                vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ?
+                                 temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
+        
                 if (uniqueVertices.count(vertex) == 0) {
                     uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
                     vertices.push_back(vertex);
                 }
                 indices.push_back(uniqueVertices[vertex]);
             }
+        
+            if (verticesInFace != 3) {
+                std::cerr << "Warning: Non-triangle face detected, vertices: " << verticesInFace << std::endl;
+            }
         }
     }
-
     return true;
 }
+    
