@@ -1,4 +1,4 @@
-#scop
+# scop
 
 
 1) Pre-installed GLFW
