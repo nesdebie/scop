@@ -6,7 +6,7 @@
 #    By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/28 09:12:17 by nesdebie          #+#    #+#              #
-#    Updated: 2025/04/28 09:14:56 by nesdebie         ###   ########.fr        #
+#    Updated: 2025/04/29 09:32:39 by nesdebie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,11 @@ SRC_DIR = src
 BUILD_DIR = build
 EXT_DIR = external
 GLM_DIR = $(EXT_DIR)/glm
+SHADER_DIR = shaders
+
+NAME = scop
+
+GLSLANG_VALIDATOR = $(EXT_DIR)/glslangValidator
 
 LIBS = -lvulkan -lglfw
 INCLUDES = -I$(SRC_DIR) -I$(GLM_DIR)
@@ -24,9 +29,11 @@ INCLUDES = -I$(SRC_DIR) -I$(GLM_DIR)
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-NAME = scop
+SHADER_SRCS = $(wildcard $(SHADER_DIR)/*.vert) $(wildcard $(SHADER_DIR)/*.frag)
+SHADER_BINS = $(SHADER_SRCS:.vert=.vert.spv)
+SHADER_BINS += $(SHADER_SRCS:.frag=.frag.spv)
 
-all: $(GLM_DIR) $(BUILD_DIR) $(NAME)
+all: shaders $(GLM_DIR) $(BUILD_DIR) $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
@@ -38,17 +45,27 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(GLM_DIR):
-	mkdir -p $(EXT_DIR)
 	git clone https://github.com/g-truc/glm.git $(GLM_DIR)
+
+shaders: $(SHADER_BINS)
+
+$(SHADER_DIR)/%.vert.spv: $(SHADER_DIR)/%.vert
+	$(GLSLANG_VALIDATOR) -V $< -o $@
+
+$(SHADER_DIR)/%.frag.spv: $(SHADER_DIR)/%.frag
+	$(GLSLANG_VALIDATOR) -V $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR) $(NAME)
 
 fclean: clean
-	rm -rf $(EXT_DIR)
+	rm -rf $(GLM_DIR)
+	find $(SHADER_DIR) -name "*.spv" -type f -delete
 
 re: fclean all
 
-recompile: clean all
+rebuild: clean shaders $(BUILD_DIR) $(NAME)
 
-.PHONY: all clean fclean re recompile
+.PHONY: all clean fclean re rebuild shaders
+
+

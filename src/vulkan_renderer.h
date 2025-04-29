@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/28 15:34:25 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/29 09:34:34 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 # include <vector>
 # include <vulkan/vulkan.h>
 # include <GLFW/glfw3.h>
+# include <string> 
+# include <fstream>
 
 # include "vertex.h"
 
@@ -34,6 +36,11 @@ private:
     void mainLoop();
     void drawFrame();
 
+    VkShaderModule createShaderModule(const std::vector<char>& code);
+    std::vector<char> readFile(const std::string& filename);
+    void createRenderPass();
+    
+
     // Window
     GLFWwindow* window;
     const int WIDTH = 1600;
@@ -50,5 +57,19 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+
+    // VulkanRenderer class members
+    VkRenderPass renderPass;
+    std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
+
+    // Command Buffers
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+
+    // Graphics Pipeline
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+
 };
 #endif
