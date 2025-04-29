@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/29 09:34:34 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:21:35 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,10 @@
 # include <GLFW/glfw3.h>
 # include <string> 
 # include <fstream>
+# include <stdexcept>
+# include <iostream>
+# include <vector>
+# include <cstring>
 
 # include "vertex.h"
 

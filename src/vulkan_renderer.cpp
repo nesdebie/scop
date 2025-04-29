@@ -6,16 +6,11 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/29 09:28:36 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:21:18 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// vulkan_renderer.cpp
 #include "vulkan_renderer.h"
-#include <stdexcept>
-#include <iostream>
-#include <vector>
-#include <cstring>
 
 // Helper function to check Vulkan result
 void vkCheck(VkResult result, const char* msg) {

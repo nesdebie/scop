@@ -6,15 +6,11 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/28 11:22:23 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/29 10:21:48 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "obj_loader.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <unordered_map>
 
 struct VertexHash {
     size_t operator()(const Vertex& v) const {
