@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return -1;
     }
+    std::cout << "Loaded " << vertices.size() << " vertices, " << indices.size() << " indices.\n";
 
     VulkanRenderer renderer;
     if (!renderer.init(vertices, indices)) {

@@ -36,14 +36,24 @@ public:
 
 private:
     void initWindow();
-    void initVulkan();
+    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index);
     void mainLoop();
     void drawFrame();
-
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     VkShaderModule createShaderModule(const std::vector<char>& code);
     std::vector<char> readFile(const std::string& filename);
     void createRenderPass();
-    
+
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+
+    size_t indexCount = 0;
+
+    void createVertexBuffer(const std::vector<Vertex>& vertices);
+    void createIndexBuffer(const std::vector<uint32_t>& indices);
+
 
     // Window
     GLFWwindow* window;

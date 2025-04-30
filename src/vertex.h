@@ -13,10 +13,15 @@
 #ifndef VERTEX_H
 # define VERTEX_H
 # include <glm/glm.hpp>
+# include <vulkan/vulkan.h>
+# include <array>
+
 
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
+    static VkVertexInputBindingDescription getBindingDescription();
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 };
 
 #endif

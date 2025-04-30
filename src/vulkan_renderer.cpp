@@ -23,9 +23,9 @@ VulkanRenderer::VulkanRenderer() {}
 
 VulkanRenderer::~VulkanRenderer() {}
 
-bool VulkanRenderer::init(const std::vector<Vertex>& /*vertices*/, const std::vector<uint32_t>& /*indices*/) {
+bool VulkanRenderer::init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index) {
     initWindow();
-    initVulkan();
+    initVulkan(vertices, index);
     return true;
 }
 
@@ -51,7 +51,7 @@ void VulkanRenderer::initWindow() {
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Window", nullptr, nullptr);
 }
 
-void VulkanRenderer::initVulkan() {
+void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index) {
     // 1. Create Vulkan Instance
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -305,8 +305,17 @@ void VulkanRenderer::initVulkan() {
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
     // Hardcode no attributes for now
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    // vertexInputInfo.vertexBindingDescriptionCount = 0;
+    // vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    auto bindingDescription = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    
+
 
     // Input assembly
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -391,6 +400,9 @@ void VulkanRenderer::initVulkan() {
     vkDestroyShaderModule(device, fragShaderModule, nullptr);
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
 
+    createVertexBuffer(vertices);
+    createIndexBuffer(index);
+
     
     // 11. Create Framebuffers
     swapChainFramebuffers.resize(swapChainImageViews.size());
@@ -445,7 +457,12 @@ void VulkanRenderer::initVulkan() {
         // Bind the pipeline before drawing
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
         // Draw a single triangle (3 vertices, 1 instance, offset 0)
-        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+        //vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indexCount), 1, 0, 0, 0);
+
     
         vkCmdEndRenderPass(commandBuffers[i]);
         vkEndCommandBuffer(commandBuffers[i]);
@@ -513,4 +530,93 @@ VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char>& code)
     }
 
     return shaderModule;
+}
+
+uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("Failed to find suitable memory type!");
+}
+
+
+void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
+    if (vertices.empty()) {
+        throw std::runtime_error("Vertex list is empty — cannot create vertex buffer.");
+    }
+    indexCount = vertices.size(); // TEMP, will overwrite in indexBuffer
+
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer), "Failed to create vertex buffer!");
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory), "Failed to allocate vertex buffer memory!");
+    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+    void* data;
+    VkResult result = vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
+    if (result != VK_SUCCESS || data == nullptr) {
+        throw std::runtime_error("Failed to map vertex buffer memory!");
+    }
+    memcpy(data, vertices.data(), (size_t) bufferSize);
+    vkUnmapMemory(device, vertexBufferMemory);
+    
+}
+
+void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices) {
+    indexCount = indices.size();
+
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &indexBuffer), "Failed to create index buffer!");
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, indexBuffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(
+        memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    );
+    
+
+    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &indexBufferMemory), "Failed to allocate index buffer memory!");
+    vkBindBufferMemory(device, indexBuffer, indexBufferMemory, 0);
+
+    void* data;
+    vkMapMemory(device, indexBufferMemory, 0, bufferSize, 0, &data);
+    if (!data) {
+        throw std::runtime_error("Failed to map index buffer memory!");
+    }
+    memcpy(data, indices.data(), (size_t)bufferSize);
+    vkUnmapMemory(device, indexBufferMemory);
+    
 }
