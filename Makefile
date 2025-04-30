@@ -29,11 +29,12 @@ INCLUDES = -I$(SRC_DIR) -I$(GLM_DIR)
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-SHADER_SRCS = $(wildcard $(SHADER_DIR)/*.vert) $(wildcard $(SHADER_DIR)/*.frag)
-SHADER_BINS = $(SHADER_SRCS:.vert=.vert.spv)
-SHADER_BINS += $(SHADER_SRCS:.frag=.frag.spv)
+VERT_SHADER = $(SHADER_DIR)/triangle.vert.glsl
+FRAG_SHADER = $(SHADER_DIR)/triangle.frag.glsl
+SPV_VERT = $(SHADER_DIR)/triangle.vert.spv
+SPV_FRAG = $(SHADER_DIR)/triangle.frag.spv
 
-all: shaders $(GLM_DIR) $(BUILD_DIR) $(NAME)
+all: $(GLM_DIR) shaders $(BUILD_DIR) $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
@@ -47,25 +48,22 @@ $(BUILD_DIR):
 $(GLM_DIR):
 	git clone https://github.com/g-truc/glm.git $(GLM_DIR)
 
-shaders: $(SHADER_BINS)
-
-$(SHADER_DIR)/%.vert.spv: $(SHADER_DIR)/%.vert
+$(SPV_VERT): $(VERT_SHADER) $(GLSLANG_VALIDATOR)
 	$(GLSLANG_VALIDATOR) -V $< -o $@
 
-$(SHADER_DIR)/%.frag.spv: $(SHADER_DIR)/%.frag
+$(SPV_FRAG): $(FRAG_SHADER) $(GLSLANG_VALIDATOR)
 	$(GLSLANG_VALIDATOR) -V $< -o $@
+
+shaders: $(SPV_VERT) $(SPV_FRAG)
 
 clean:
-	rm -rf $(BUILD_DIR) $(NAME)
+	rm -rf $(BUILD_DIR) $(NAME) $(SPV_VERT) $(SPV_FRAG)
 
 fclean: clean
 	rm -rf $(GLM_DIR)
-	find $(SHADER_DIR) -name "*.spv" -type f -delete
 
 re: fclean all
 
 rebuild: clean shaders $(BUILD_DIR) $(NAME)
 
 .PHONY: all clean fclean re rebuild shaders
-
-

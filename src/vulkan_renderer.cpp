@@ -341,6 +341,8 @@ void VulkanRenderer::initVulkan() {
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
+
+    //rasterizer.cullMode = VK_CULL_MODE_NONE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
@@ -425,9 +427,7 @@ void VulkanRenderer::initVulkan() {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     
-        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to begin recording command buffer!");
-        }
+        vkBeginCommandBuffer(commandBuffers[i], &beginInfo);
     
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -436,19 +436,20 @@ void VulkanRenderer::initVulkan() {
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapChainExtent;
     
-        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}}; // black clear
+        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
     
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        
+        // Bind the pipeline before drawing
+        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+        // Draw a single triangle (3 vertices, 1 instance, offset 0)
+        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+    
         vkCmdEndRenderPass(commandBuffers[i]);
-    
-        if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to record command buffer!");
-        }
+        vkEndCommandBuffer(commandBuffers[i]);
     }
-    
-
 }
 
 
