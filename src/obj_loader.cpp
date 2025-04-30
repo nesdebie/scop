@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/29 10:21:48 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/04/30 11:00:37 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,16 @@ bool operator==(const Vertex& a, const Vertex& b) {
     return a.position == b.position && a.normal == b.normal;
 }
 
+static bool ends_with(const std::string& str, const std::string& suffix)
+{
+    return str.size() >= suffix.size() && str.compare(str.size()-suffix.size(), suffix.size(), suffix) == 0;
+}
+
 bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
+    if (filename.empty() || ends_with(filename, ".obj") == false || ends_with(filename, "/.obj") == true || (filename.size() == 4 && ends_with(filename, ".obj") == true)) {
+        std::cerr << "Filename is invalid." << std::endl;
+        return false;
+    }
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open OBJ file: " << filename << std::endl;
