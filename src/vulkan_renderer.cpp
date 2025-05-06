@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/29 10:21:18 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/06 08:17:08 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,7 +281,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     // 10.1 Create Framebuffer
     auto vertShaderCode = readFile("shaders/triangle.vert.spv");
     auto fragShaderCode = readFile("shaders/triangle.frag.spv");
-    
+
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -309,6 +309,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     // vertexInputInfo.vertexAttributeDescriptionCount = 0;
     auto bindingDescription = Vertex::getBindingDescription();
     auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    
     
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
@@ -351,8 +352,8 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
 
-    //rasterizer.cullMode = VK_CULL_MODE_NONE;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizer.cullMode = VK_CULL_MODE_NONE;
+    // rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
