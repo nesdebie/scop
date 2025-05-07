@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/07 11:50:35 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/07 12:41:41 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -483,20 +483,23 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 void VulkanRenderer::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        handleInput();
         drawFrame();
     }
     vkDeviceWaitIdle(device);
 }
 
 void VulkanRenderer::handleInput() {
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        cameraYaw -= 0.02f;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        cameraYaw += 0.02f;
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        cameraPitch += 0.02f;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        cameraPitch -= 0.02f;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraYaw -= 0.0002f;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraYaw += 0.0002f;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPitch += 0.0002f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPitch -= 0.0002f;
+    if (glfwGetKey(window, GLFW_KEY_Q))
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
