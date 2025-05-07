@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/07 09:11:20 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/07 11:50:35 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,9 @@ void VulkanRenderer::initWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Window", nullptr, nullptr);
+    glfwSetWindowUserPointer(window, this);
+    glfwSetScrollCallback(window, scrollCallback);
+
 }
 
 void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index) {
@@ -485,6 +488,30 @@ void VulkanRenderer::mainLoop() {
     vkDeviceWaitIdle(device);
 }
 
+void VulkanRenderer::handleInput() {
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        cameraYaw -= 0.02f;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        cameraYaw += 0.02f;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        cameraPitch += 0.02f;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        cameraPitch -= 0.02f;
+
+    cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
+}
+
+
+void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    (void)xoffset; // Unused parameter
+    VulkanRenderer* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+    if (renderer) {
+        renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
+        renderer->cameraDistance = glm::clamp(renderer->cameraDistance, 0.5f, 10.0f);
+    }
+}
+
+
 void VulkanRenderer::drawFrame() {
     updateUniformBuffer();
     uint32_t imageIndex;
@@ -559,7 +586,6 @@ void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
     if (vertices.empty()) {
         throw std::runtime_error("Vertex list is empty — cannot create vertex buffer.");
     }
-    //indexCount = vertices.size(); // TEMP, will overwrite in indexBuffer
 
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -675,14 +701,18 @@ void VulkanRenderer::createUniformBuffer() {
 
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-                           glm::vec3(0.0f, 0.0f, 0.0f),
-                           glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f),
-                                swapChainExtent.width / (float) swapChainExtent.height,
-                                0.1f, 10.0f);
-    ubo.proj[1][1] *= -1; // Vulkan Y-flip
+
+    ubo.model = glm::mat4(1.0f);
+
+    glm::vec3 cameraPos = glm::vec3(
+        cameraDistance * cos(cameraPitch) * sin(cameraYaw),
+        cameraDistance * sin(cameraPitch),
+        cameraDistance * cos(cameraPitch) * cos(cameraYaw)
+    );
+
+    ubo.view = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1;
 
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);

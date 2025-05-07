@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/07 09:07:44 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/07 11:49:31 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,8 @@ private:
     void updateUniformBuffer();
     void createDescriptorPool();
     void createDescriptorSet();
-
-
+    void handleInput();
+    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
     // Window
     GLFWwindow* window;
@@ -99,6 +99,11 @@ private:
     VkDescriptorSetLayout descriptorSetLayout;
     VkDescriptorPool descriptorPool;
     VkDescriptorSet descriptorSet;
+
+    // camera position and angle
+    float cameraYaw = 0.0f;
+    float cameraPitch = 0.0f;
+    float cameraDistance = 2.0f;
 
 };
 #endif
