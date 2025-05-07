@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/04/29 10:21:35 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/07 09:07:44 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,12 @@ private:
 
     void createVertexBuffer(const std::vector<Vertex>& vertices);
     void createIndexBuffer(const std::vector<uint32_t>& indices);
+    void createDescriptorSetLayout();
+    void createUniformBuffer();
+    void updateUniformBuffer();
+    void createDescriptorPool();
+    void createDescriptorSet();
+
 
 
     // Window
@@ -84,6 +90,15 @@ private:
     // Graphics Pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+
+    // MVP Uniform Buffer
+    VkBuffer uniformBuffer;
+    VkDeviceMemory uniformBufferMemory;
+
+    // Descriptor Layout and Set
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorPool descriptorPool;
+    VkDescriptorSet descriptorSet;
 
 };
 #endif
