@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/09 11:54:23 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/09 13:29:06 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,8 +356,8 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
 
-    rasterizer.cullMode = VK_CULL_MODE_NONE;
-    // rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+    //rasterizer.cullMode = VK_CULL_MODE_NONE;
+    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
@@ -771,11 +771,6 @@ void VulkanRenderer::createDescriptorSet() {
 
     vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet), "Failed to allocate descriptor set!");
 
-    // VkDescriptorBufferInfo bufferInfo{};
-    // bufferInfo.buffer = uniformBuffer;
-    // bufferInfo.offset = 0;
-    // bufferInfo.range = sizeof(UniformBufferObject);
-
     // UBO binding
     VkDescriptorBufferInfo bufferInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
     VkWriteDescriptorSet descriptorWrite{};
@@ -805,7 +800,6 @@ void VulkanRenderer::createDescriptorSet() {
     // Write both
     std::array<VkWriteDescriptorSet, 2> descriptorWrites = {descriptorWrite, samplerWrite};
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-    
 }
 
 void VulkanRenderer::createTextureImage(const std::string& texturePath) {
