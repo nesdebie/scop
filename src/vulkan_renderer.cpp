@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/09 13:29:06 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/09 14:44:04 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,6 +255,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
         // createTextureImageView();
         // createTextureSampler();
     }
+    createDepthResources();
 
     // 10. Create Render Pass
     VkAttachmentDescription colorAttachment{};
@@ -271,18 +272,33 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     colorAttachmentRef.attachment = 0;
     colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = findDepthFormat();
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
     VkSubpassDescription subpass{};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments = &colorAttachment;
+    std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
-
     vkCheck(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass), "Failed to create render pass!");
 
     // 10.1 Create Framebuffer
@@ -319,8 +335,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
     vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-    
-
 
     // Input assembly
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -379,7 +393,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     colorBlending.pAttachments = &colorBlendAttachment;
 
     // Pipeline Layout
-
     createDescriptorSetLayout();
 
 
@@ -401,7 +414,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     
     createDescriptorPool();
     createDescriptorSet();
-    
     // Create the pipeline
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -426,23 +438,26 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     createVertexBuffer(vertices);
     createIndexBuffer(index);
 
-    
-    // 11. Create Framebuffers
-    swapChainFramebuffers.resize(swapChainImageViews.size());
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        VkImageView attachments[] = { swapChainImageViews[i] };
+// 11. Create Framebuffers (with depth buffer)
+swapChainFramebuffers.resize(swapChainImageViews.size());
+for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+    std::array<VkImageView, 2> attachments = {
+        swapChainImageViews[i],
+        depthImageView
+    };
 
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = swapChainExtent.width;
-        framebufferInfo.height = swapChainExtent.height;
-        framebufferInfo.layers = 1;
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = renderPass;
+    framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    framebufferInfo.pAttachments = attachments.data();
+    framebufferInfo.width = swapChainExtent.width;
+    framebufferInfo.height = swapChainExtent.height;
+    framebufferInfo.layers = 1;
 
-        vkCheck(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
-    }
+    vkCheck(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
+}
+
 
     // 12. Create Command Buffers
     commandBuffers.resize(swapChainFramebuffers.size());
@@ -461,7 +476,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     for (size_t i = 0; i < commandBuffers.size(); i++) {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    
         vkBeginCommandBuffer(commandBuffers[i], &beginInfo);
     
         VkRenderPassBeginInfo renderPassInfo{};
@@ -844,21 +858,27 @@ void VulkanRenderer::createTextureImage(const std::string& texturePath) {
 
 
 VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format) {
+    VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
+        aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    }
+
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.aspectMask = aspectMask;
     viewInfo.subresourceRange.baseMipLevel = 0;
     viewInfo.subresourceRange.levelCount = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
     VkImageView imageView;
-    vkCheck(vkCreateImageView(device, &viewInfo, nullptr, &imageView), "Failed to create texture image view");
+    vkCheck(vkCreateImageView(device, &viewInfo, nullptr, &imageView), "Failed to create image view!");
     return imageView;
 }
+
 
 void VulkanRenderer::createTextureImageView() {
     textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
@@ -980,9 +1000,15 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkIma
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     } else {
         throw std::invalid_argument("Unsupported layout transition!");
     }
+    
 
     vkCmdPipelineBarrier(
         commandBuffer,
@@ -1075,4 +1101,27 @@ void VulkanRenderer::createFallbackWhiteTexture() {
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+VkFormat VulkanRenderer::findDepthFormat() {
+    return VK_FORMAT_D32_SFLOAT; // Or use a helper to find supported formats
+}
+
+void VulkanRenderer::createDepthResources() {
+    VkFormat depthFormat = findDepthFormat();
+
+    createImage(
+        swapChainExtent.width, swapChainExtent.height,
+        depthFormat, VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        depthImage, depthImageMemory
+    );
+
+    depthImageView = createImageView(depthImage, depthFormat);
+    
+    transitionImageLayout(depthImage, depthFormat,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    );
 }
