@@ -12,14 +12,17 @@ int main(int argc, char** argv) {
 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-    if (!loadOBJ(objPath, vertices, indices)) {
+    std::string textureFile;
+    if (!loadOBJ(objPath, vertices, indices, textureFile)) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return -1;
     }
     std::cout << "Loaded " << vertices.size() << " vertices, " << indices.size() << " indices.\n";
+    std::cout << "Using texture: " << textureFile << std::endl;
+    
 
     VulkanRenderer renderer;
-    if (!renderer.init(vertices, indices)) {
+    if (!renderer.init(vertices, indices, textureFile)) {
         std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;
         return -1;
     }

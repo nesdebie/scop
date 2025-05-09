@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/07 11:49:31 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/09 11:53:37 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <vector>
 # include <cstring>
 
+# include <stb_image.h>
 # include "vertex.h"
 
 class VulkanRenderer {
@@ -30,13 +31,16 @@ public:
     VulkanRenderer();
     ~VulkanRenderer();
 
-    bool init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+    bool init(const std::vector<Vertex>& vertices,
+        const std::vector<uint32_t>& indices,
+        const std::string& textureFile);
+
     void run();
     void cleanup();
 
 private:
     void initWindow();
-    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index);
+    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile);
     void mainLoop();
     void drawFrame();
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
@@ -61,10 +65,26 @@ private:
     void handleInput();
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+    void createTextureImage(const std::string& texturePath);
+    void createTextureImageView();
+    void createTextureSampler();
+    VkImageView createImageView(VkImage image, VkFormat format);
+    
+    void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer_T*&, VkDeviceMemory_T*&);
+    void createImage(uint32_t, uint32_t, VkFormat, VkImageTiling, VkImageUsageFlags, VkMemoryPropertyFlags, VkImage_T*&, VkDeviceMemory_T*&);
+    void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
+    void copyBufferToImage(VkBuffer, VkImage, uint32_t, uint32_t);
+
+    void createFallbackWhiteTexture();
+
+
+    
+
+
     // Window
     GLFWwindow* window;
-    const int WIDTH = 1600;
-    const int HEIGHT = 1200;
+    const int WIDTH = 2400;
+    const int HEIGHT = 1800;
 
     // Vulkan
     VkInstance instance;
@@ -104,6 +124,13 @@ private:
     float cameraYaw = 0.0f;
     float cameraPitch = 0.0f;
     float cameraDistance = 2.0f;
+
+    //Texture
+    VkImage textureImage;
+    VkDeviceMemory textureImageMemory;
+    VkImageView textureImageView;
+    VkSampler textureSampler;
+
 
 };
 #endif
