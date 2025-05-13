@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/09 08:49:59 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/13 10:32:52 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,14 +84,13 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                 int texIdx = idxTex.empty() ? -1 : std::stoi(idxTex) - 1;
                 int normIdx = idxNorm.empty() ? -1 : std::stoi(idxNorm) - 1;
 
-                if (posIdx < 0 || posIdx >= (int)temp_positions.size()) continue;
+                if (posIdx < 0 || posIdx >= (int)temp_positions.size())
+                    continue;
 
                 Vertex vertex{};
                 vertex.position = temp_positions[posIdx];
-                vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ?
-                                temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
-                vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ?
-                                  temp_texcoords[texIdx] : glm::vec2(0.0f);
+                vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ? temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
+                vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : glm::vec2(0.0f);
 
                 if (uniqueVertices.count(vertex) == 0) {
                     uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
