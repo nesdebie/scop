@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/09 14:44:04 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/13 08:45:34 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,7 +372,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 
     //rasterizer.cullMode = VK_CULL_MODE_NONE;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     // Multisampling
@@ -409,6 +409,8 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     } else {
         createFallbackWhiteTexture();
     }
+    createFallbackUniformBuffer(!textureFile.empty());
+
     createTextureImageView();
     createTextureSampler();
     
@@ -661,7 +663,20 @@ void VulkanRenderer::createDescriptorSetLayout() {
     samplerLayoutBinding.pImmutableSamplers = nullptr;
     samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     
-    std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+    VkDescriptorSetLayoutBinding fallbackFlagBinding{};
+    fallbackFlagBinding.binding = 2;
+    fallbackFlagBinding.descriptorCount = 1;
+    fallbackFlagBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    fallbackFlagBinding.pImmutableSamplers = nullptr;
+    fallbackFlagBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    
+    
+    std::array<VkDescriptorSetLayoutBinding, 3> bindings = {
+        uboLayoutBinding,
+        samplerLayoutBinding,
+        fallbackFlagBinding
+    };
+    
     
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -760,11 +775,14 @@ void VulkanRenderer::updateUniformBuffer() {
 }
 
 void VulkanRenderer::createDescriptorPool() {
-    std::array<VkDescriptorPoolSize, 2> poolSizes{};
+    std::array<VkDescriptorPoolSize, 3> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = 1;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = 1;
+    poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; // for fallback flag
+    poolSizes[2].descriptorCount = 1;
+    
     
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -811,8 +829,25 @@ void VulkanRenderer::createDescriptorSet() {
     samplerWrite.descriptorCount = 1;
     samplerWrite.pImageInfo = &imageInfo;
 
+
+    VkDescriptorBufferInfo fallbackInfo{};
+    fallbackInfo.buffer = fallbackUniformBuffer;
+    fallbackInfo.offset = 0;
+    fallbackInfo.range = sizeof(int);
+
+    VkWriteDescriptorSet fallbackWrite{};
+    fallbackWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    fallbackWrite.dstSet = descriptorSet;
+    fallbackWrite.dstBinding = 2;
+    fallbackWrite.dstArrayElement = 0;
+    fallbackWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    fallbackWrite.descriptorCount = 1;
+    fallbackWrite.pBufferInfo = &fallbackInfo;
+
     // Write both
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites = {descriptorWrite, samplerWrite};
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites = {
+        descriptorWrite, samplerWrite, fallbackWrite
+    };
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
@@ -1124,4 +1159,20 @@ void VulkanRenderer::createDepthResources() {
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
     );
+}
+
+void VulkanRenderer::createFallbackUniformBuffer(bool hasTexture) {
+    int flag = hasTexture ? 1 : 0;
+
+    VkDeviceSize bufferSize = sizeof(int);
+
+    createBuffer(bufferSize,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        fallbackUniformBuffer, fallbackUniformBufferMemory);
+
+    void* data;
+    vkMapMemory(device, fallbackUniformBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, &flag, bufferSize);
+    vkUnmapMemory(device, fallbackUniformBufferMemory);
 }
