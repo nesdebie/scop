@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/13 10:32:52 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/14 10:51:31 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,8 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
             iss >> normal.x >> normal.y >> normal.z;
             temp_normals.push_back(normal);
         } else if (prefix == "f") {
+            std::vector<uint32_t> faceIndices;
+        
             std::string vertexString;
             while (iss >> vertexString) {
                 std::istringstream vss(vertexString);
@@ -79,24 +81,30 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                 std::getline(vss, idxPos, '/');
                 std::getline(vss, idxTex, '/');
                 std::getline(vss, idxNorm, '/');
-
+        
                 int posIdx = idxPos.empty() ? -1 : std::stoi(idxPos) - 1;
                 int texIdx = idxTex.empty() ? -1 : std::stoi(idxTex) - 1;
                 int normIdx = idxNorm.empty() ? -1 : std::stoi(idxNorm) - 1;
-
-                if (posIdx < 0 || posIdx >= (int)temp_positions.size())
-                    continue;
-
+        
+                if (posIdx < 0 || posIdx >= (int)temp_positions.size()) continue;
+        
                 Vertex vertex{};
                 vertex.position = temp_positions[posIdx];
                 vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ? temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
                 vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : glm::vec2(0.0f);
-
+        
                 if (uniqueVertices.count(vertex) == 0) {
                     uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
                     vertices.push_back(vertex);
                 }
-                indices.push_back(uniqueVertices[vertex]);
+                faceIndices.push_back(uniqueVertices[vertex]);
+            }
+        
+            // Triangulate face (fan from vertex 0)
+            for (size_t i = 1; i + 1 < faceIndices.size(); ++i) {
+                indices.push_back(faceIndices[0]);
+                indices.push_back(faceIndices[i]);
+                indices.push_back(faceIndices[i + 1]);
             }
         } else if (prefix == "mtllib") {
             iss >> mtlFilename;
