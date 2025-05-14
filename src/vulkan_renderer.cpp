@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/13 08:45:34 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/14 15:47:29 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,21 +77,22 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 
     vkCheck(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create Vulkan instance!");
 
+    
     // 2. Create window surface
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
         throw std::runtime_error("Failed to create window surface!");
-    }
 
-    // 3. Pick Physical Device
+        
+    // 3. Pick Physical Device based on instance
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-    if (deviceCount == 0) {
+    if (deviceCount == 0)
         throw std::runtime_error("Failed to find GPUs with Vulkan support!");
-    }
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-    physicalDevice = devices[0]; // just pick the first one
+    physicalDevice = devices[0];
 
+    
     // 4. Find Queue Family
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
@@ -111,10 +112,10 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 
 	VkBool32 presentSupport = VK_FALSE;
 	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamily, surface, &presentSupport);
-	if (!presentSupport) {
+	if (!presentSupport)
 		throw std::runtime_error("Selected graphics queue family does not support presenting to surface!");
-	}
 
+        
     // 5. Create Logical Device
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -124,7 +125,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
     VkPhysicalDeviceFeatures deviceFeatures{};
-
 	const char* deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	
     VkDeviceCreateInfo deviceCreateInfo{};
@@ -135,21 +135,19 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 	deviceCreateInfo.enabledExtensionCount = 1;
 	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions;
 
-
     vkCheck(vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device), "Failed to create logical device!");
-
     vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
-    presentQueue = graphicsQueue; // assume graphics == present (valid for most simple setups)
+    presentQueue = graphicsQueue;
 
+    
     // 5.1 Create Command Pool
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = graphicsFamily; // graphics queue family
-    poolInfo.flags = 0; // optional
+    poolInfo.queueFamilyIndex = graphicsFamily;
+    poolInfo.flags = 0;
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
         throw std::runtime_error("Failed to create command pool!");
-    }
 
     
     // 6. Query Swapchain Support
@@ -158,20 +156,19 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
 
     uint32_t formatCount;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
-    if (formatCount == 0) {
+    if (formatCount == 0) 
         throw std::runtime_error("No surface formats found!");
-    }
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, surfaceFormats.data());
 
     uint32_t presentModeCount;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
-    if (presentModeCount == 0) {
+    if (presentModeCount == 0)
         throw std::runtime_error("No present modes found!");
-    }
     std::vector<VkPresentModeKHR> presentModes(presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
 
+    
     // 7. Choose Swapchain Details
     VkSurfaceFormatKHR surfaceFormat = surfaceFormats[0];
     for (const auto& availableFormat : surfaceFormats) {
@@ -183,7 +180,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     }
 
 
-    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR; // always available
+    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
     for (const auto& availablePresentMode : presentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             presentMode = availablePresentMode;
@@ -471,9 +468,8 @@ for (size_t i = 0; i < swapChainImageViews.size(); i++) {
     allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
     // Allocate command buffers
-    if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
         throw std::runtime_error("Failed to allocate command buffers!");
-    }
 
     for (size_t i = 0; i < commandBuffers.size(); i++) {
         VkCommandBufferBeginInfo beginInfo{};
@@ -570,9 +566,8 @@ void VulkanRenderer::drawFrame() {
 
 std::vector<char> VulkanRenderer::readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    if (!file.is_open()) {
+    if (!file.is_open())
         throw std::runtime_error("Failed to open file: " + filename);
-    }
 
     size_t fileSize = (size_t) file.tellg();
     std::vector<char> buffer(fileSize);
@@ -591,9 +586,8 @@ VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char>& code)
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
     VkShaderModule shaderModule;
-    if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
         throw std::runtime_error("Failed to create shader module!");
-    }
 
     return shaderModule;
 }
@@ -603,20 +597,16 @@ uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
             return i;
-        }
     }
-
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
 
 void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
-    if (vertices.empty()) {
+    if (vertices.empty())
         throw std::runtime_error("Vertex list is empty — cannot create vertex buffer.");
-    }
 
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -631,18 +621,14 @@ void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(
-        memRequirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    );
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     
     vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory), "Failed to allocate vertex buffer memory!");
     vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
     void* data;
     VkResult result = vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
-    if (result != VK_SUCCESS || data == nullptr) {
+    if (result != VK_SUCCESS || data == nullptr)
         throw std::runtime_error("Failed to map vertex buffer memory!");
-    }
     memcpy(data, vertices.data(), (size_t) bufferSize);
     vkUnmapMemory(device, vertexBufferMemory);
     
@@ -719,9 +705,8 @@ void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices) {
 
     void* data;
     vkMapMemory(device, indexBufferMemory, 0, bufferSize, 0, &data);
-    if (!data) {
+    if (!data)
         throw std::runtime_error("Failed to map index buffer memory!");
-    }
     memcpy(data, indices.data(), (size_t)bufferSize);
     vkUnmapMemory(device, indexBufferMemory);
     
@@ -744,8 +729,7 @@ void VulkanRenderer::createUniformBuffer() {
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, 
-                                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &uniformBufferMemory), "Failed to allocate uniform buffer memory!");
 
@@ -789,7 +773,6 @@ void VulkanRenderer::createDescriptorPool() {
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = 1;
-    
 
     vkCheck(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool!");
 }
@@ -845,9 +828,7 @@ void VulkanRenderer::createDescriptorSet() {
     fallbackWrite.pBufferInfo = &fallbackInfo;
 
     // Write both
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites = {
-        descriptorWrite, samplerWrite, fallbackWrite
-    };
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites = { descriptorWrite, samplerWrite, fallbackWrite };
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
@@ -861,9 +842,7 @@ void VulkanRenderer::createTextureImage(const std::string& texturePath) {
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingBuffer, stagingBufferMemory);
+    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -894,9 +873,8 @@ void VulkanRenderer::createTextureImage(const std::string& texturePath) {
 
 VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format) {
     VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
+    if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT)
         aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    }
 
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1040,18 +1018,11 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkIma
         barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    } else {
+    } else
         throw std::invalid_argument("Unsupported layout transition!");
-    }
     
 
-    vkCmdPipelineBarrier(
-        commandBuffer,
-        sourceStage, destinationStage,
-        0,
-        0, nullptr,
-        0, nullptr,
-        1, &barrier);
+    vkCmdPipelineBarrier(commandBuffer,sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
     vkEndCommandBuffer(commandBuffer);
 
@@ -1092,8 +1063,7 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t 
     region.imageOffset = {0, 0, 0};
     region.imageExtent = { width, height, 1 };
 
-    vkCmdCopyBufferToImage(commandBuffer, buffer, image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
     vkEndCommandBuffer(commandBuffer);
 
@@ -1114,9 +1084,7 @@ void VulkanRenderer::createFallbackWhiteTexture() {
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingBuffer, stagingBufferMemory);
+    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
