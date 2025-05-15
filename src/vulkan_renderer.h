@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 08:51:37 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 15:04:52 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,11 @@
 # include <stb_image.h>
 # include "vertex.h"
 
-# define WINDOW_DEPTH 20.0f
+# define WINDOW_DEPTH 42.0f
 # define WINDOW_WIDTH 2400
 # define WINDOW_HEIGHT 1800
+
+# define ROTATION_SPEED 0.001f
 
 class VulkanRenderer {
     public:
@@ -41,6 +43,9 @@ class VulkanRenderer {
 
         void run();
         void cleanup();
+        glm::vec3 objectCenter = glm::vec3(0.0f);
+        float objectRadius = 1.0f;
+        float cameraDistance = 2.0f;
 
     private:
         void initWindow();
@@ -88,6 +93,17 @@ class VulkanRenderer {
         void createDepthResources();
         VkFormat findDepthFormat();
 
+        // Move objects
+        double lastMouseX = 0.0, lastMouseY = 0.0;
+        bool leftMousePressed = false;
+        glm::vec3 modelOffset = glm::vec3(0.0f); // ← translation offset
+        static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+        static void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
+        
+
+        // glm::vec3 objectCenter = glm::vec3(0.0f);
+        // float objectRadius = 1.0f;
+
         // Window
         GLFWwindow* window;
 
@@ -128,7 +144,7 @@ class VulkanRenderer {
         // camera position and angle
         float cameraYaw = 0.0f;
         float cameraPitch = 0.0f;
-        float cameraDistance = 2.0f;
+        // float cameraDistance = 2.0f;
 
         //Texture
         VkImage textureImage;

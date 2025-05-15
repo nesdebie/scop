@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 12:03:23 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 15:02:21 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ void VulkanRenderer::cleanup() {
     glfwTerminate();
 }
 
+
 void VulkanRenderer::initWindow() {
     glfwInit();
 
@@ -53,7 +54,9 @@ void VulkanRenderer::initWindow() {
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "scop is dope", nullptr, nullptr);
     glfwSetWindowUserPointer(window, this);
     glfwSetScrollCallback(window, scrollCallback);
-
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
+    
 }
 
 void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile) {
@@ -530,13 +533,13 @@ void VulkanRenderer::mainLoop() {
 
 void VulkanRenderer::handleInput() {
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraYaw -= 0.0002f;
+        cameraYaw -= ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraYaw += 0.0002f;
+        cameraYaw += ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPitch += 0.0002f;
+        cameraPitch += ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPitch -= 0.0002f;
+        cameraPitch -= ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_Q))
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 
@@ -547,12 +550,42 @@ void VulkanRenderer::handleInput() {
 void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     (void)xoffset; // Unused parameter
     VulkanRenderer* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
-    if (renderer) {
+    if (renderer && renderer->leftMousePressed) {
+        renderer->modelOffset.z += static_cast<float>(yoffset) * 0.05f;
+    } else {
         renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
-        renderer->cameraDistance = glm::clamp(renderer->cameraDistance, 0.5f, 10.0f);
+        renderer->cameraDistance = glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
+    }
+    
+}
+
+
+void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int /*mods*/) {
+    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+    if (!renderer) return;
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        renderer->leftMousePressed = (action == GLFW_PRESS);
+        if (action == GLFW_PRESS) {
+            glfwGetCursorPos(window, &renderer->lastMouseX, &renderer->lastMouseY);
+        }
     }
 }
 
+void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
+    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+    if (!renderer || !renderer->leftMousePressed) return;
+
+    double dx = xpos - renderer->lastMouseX;
+    double dy = ypos - renderer->lastMouseY;
+    renderer->lastMouseX = xpos;
+    renderer->lastMouseY = ypos;
+
+    // Sensitivity scale
+    float sensitivity = 0.005f;
+    renderer->modelOffset.x += dx * sensitivity;
+    renderer->modelOffset.y -= dy * sensitivity;
+}
 
 void VulkanRenderer::drawFrame() {
     updateUniformBuffer();
@@ -752,7 +785,8 @@ void VulkanRenderer::createUniformBuffer() {
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
-    ubo.model = glm::mat4(1.0f);
+    ubo.model = glm::translate(glm::mat4(1.0f), modelOffset);
+
 
     glm::vec3 cameraPos = glm::vec3(
         cameraDistance * cos(cameraPitch) * sin(cameraYaw),
@@ -760,7 +794,7 @@ void VulkanRenderer::updateUniformBuffer() {
         cameraDistance * cos(cameraPitch) * cos(cameraYaw)
     );
 
-    ubo.view = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.view = glm::lookAt(cameraPos, objectCenter, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, WINDOW_DEPTH);
     ubo.proj[1][1] *= -1;
 

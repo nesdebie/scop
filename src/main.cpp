@@ -16,8 +16,20 @@ int main(int ac, char** av) {
         std::cerr << "Failed to load OBJ file." << std::endl;
         return -1;
     }
+    glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
+    for (const auto& v : vertices) {
+        minBounds = glm::min(minBounds, v.position);
+        maxBounds = glm::max(maxBounds, v.position);
+    }
 
+    glm::vec3 center = 0.5f * (minBounds + maxBounds);
+    glm::vec3 size = maxBounds - minBounds;
+    float radius = glm::length(size) * 0.5f;
     VulkanRenderer renderer;
+    renderer.objectCenter = center;
+    renderer.objectRadius = radius;
+    renderer.cameraDistance = radius * 2.2f;
+
     if (!renderer.init(vertices, indices, textureFile)) {
         std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;
         return -1;
