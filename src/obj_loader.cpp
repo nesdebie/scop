@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/14 10:51:31 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 09:28:27 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,10 +108,14 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
             }
         } else if (prefix == "mtllib") {
             iss >> mtlFilename;
+        
             std::ifstream mtlFile("models/" + mtlFilename);
             if (!mtlFile.is_open()) {
-                std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
-                return false;
+                mtlFile.open("models/mtl/" + mtlFilename);
+                if (!mtlFile.is_open()) {
+                    std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
+                    return false;
+                }
             }
         
             std::string mtlLine;
@@ -119,12 +123,30 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                 std::istringstream mtlIss(mtlLine);
                 std::string mtlPrefix;
                 mtlIss >> mtlPrefix;
+        
                 if (mtlPrefix == "map_Kd") {
-                    mtlIss >> textureFile;
-                    break;
+                    std::string texCandidate;
+                    mtlIss >> texCandidate;
+        
+                    // Try models/ first
+                    std::ifstream texFile("models/" + texCandidate);
+                    if (texFile.good()) {
+                        textureFile = texCandidate;
+                        break;
+                    }
+        
+                    // Then models/tex/
+                    texFile.open("models/tex/" + texCandidate);
+                    if (texFile.good()) {
+                        textureFile = "tex/" + texCandidate;
+                        break;
+                    }
+        
+                    std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texCandidate << std::endl;
                 }
             }
         }
+        
         
     }
     return true;

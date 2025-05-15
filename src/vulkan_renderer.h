@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/13 08:40:34 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 08:51:37 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,117 +26,119 @@
 # include <stb_image.h>
 # include "vertex.h"
 
+# define WINDOW_DEPTH 20.0f
+# define WINDOW_WIDTH 2400
+# define WINDOW_HEIGHT 1800
+
 class VulkanRenderer {
-public:
-    VulkanRenderer();
-    ~VulkanRenderer();
+    public:
+        VulkanRenderer();
+        ~VulkanRenderer();
 
-    bool init(const std::vector<Vertex>& vertices,
-        const std::vector<uint32_t>& indices,
-        const std::string& textureFile);
+        bool init(const std::vector<Vertex>& vertices,
+            const std::vector<uint32_t>& indices,
+            const std::string& textureFile);
 
-    void run();
-    void cleanup();
+        void run();
+        void cleanup();
 
-private:
-    void initWindow();
-    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile);
-    void mainLoop();
-    void drawFrame();
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    VkShaderModule createShaderModule(const std::vector<char>& code);
-    std::vector<char> readFile(const std::string& filename);
-    void createRenderPass();
+    private:
+        void initWindow();
+        void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile);
+        void mainLoop();
+        void drawFrame();
+        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        VkShaderModule createShaderModule(const std::vector<char>& code);
+        std::vector<char> readFile(const std::string& filename);
+        void createRenderPass();
 
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
+        VkBuffer vertexBuffer;
+        VkDeviceMemory vertexBufferMemory;
+        VkBuffer indexBuffer;
+        VkDeviceMemory indexBufferMemory;
 
-    size_t indexCount = 0;
+        size_t indexCount = 0;
 
-    void createVertexBuffer(const std::vector<Vertex>& vertices);
-    void createIndexBuffer(const std::vector<uint32_t>& indices);
-    void createDescriptorSetLayout();
-    void createUniformBuffer();
-    void updateUniformBuffer();
-    void createDescriptorPool();
-    void createDescriptorSet();
-    void handleInput();
-    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+        void createVertexBuffer(const std::vector<Vertex>& vertices);
+        void createIndexBuffer(const std::vector<uint32_t>& indices);
+        void createDescriptorSetLayout();
+        void createUniformBuffer();
+        void updateUniformBuffer();
+        void createDescriptorPool();
+        void createDescriptorSet();
+        void handleInput();
+        static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-    void createTextureImage(const std::string& texturePath);
-    void createTextureImageView();
-    void createTextureSampler();
-    VkImageView createImageView(VkImage image, VkFormat format);
-    
-    void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer_T*&, VkDeviceMemory_T*&);
-    void createImage(uint32_t, uint32_t, VkFormat, VkImageTiling, VkImageUsageFlags, VkMemoryPropertyFlags, VkImage_T*&, VkDeviceMemory_T*&);
-    void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
-    void copyBufferToImage(VkBuffer, VkImage, uint32_t, uint32_t);
+        void createTextureImage(const std::string& texturePath);
+        void createTextureImageView();
+        void createTextureSampler();
+        VkImageView createImageView(VkImage image, VkFormat format);
+        
+        void createBuffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer_T*&, VkDeviceMemory_T*&);
+        void createImage(uint32_t, uint32_t, VkFormat, VkImageTiling, VkImageUsageFlags, VkMemoryPropertyFlags, VkImage_T*&, VkDeviceMemory_T*&);
+        void transitionImageLayout(VkImage, VkFormat, VkImageLayout, VkImageLayout);
+        void copyBufferToImage(VkBuffer, VkImage, uint32_t, uint32_t);
 
-    void createFallbackWhiteTexture();
+        void createFallbackWhiteTexture();
 
-    VkBuffer fallbackUniformBuffer;
-    VkDeviceMemory fallbackUniformBufferMemory;
-    void createFallbackUniformBuffer(bool hasTexture);
+        VkBuffer fallbackUniformBuffer;
+        VkDeviceMemory fallbackUniformBufferMemory;
+        void createFallbackUniformBuffer(bool hasTexture);
 
-    void createDepthResources();
-    VkFormat findDepthFormat();
+        void createDepthResources();
+        VkFormat findDepthFormat();
 
-    // Window
-    GLFWwindow* window;
-    const int WIDTH = 2400;
-    const int HEIGHT = 1800;
+        // Window
+        GLFWwindow* window;
 
-    // Vulkan
-    VkInstance instance;
-    VkSurfaceKHR surface;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device;
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
+        // Vulkan
+        VkInstance instance;
+        VkSurfaceKHR surface;
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+        VkDevice device;
+        VkQueue graphicsQueue;
+        VkQueue presentQueue;
+        VkSwapchainKHR swapChain;
+        std::vector<VkImage> swapChainImages;
+        VkFormat swapChainImageFormat;
+        VkExtent2D swapChainExtent;
 
-    // VulkanRenderer class members
-    VkRenderPass renderPass;
-    std::vector<VkImageView> swapChainImageViews;
-    std::vector<VkFramebuffer> swapChainFramebuffers;
+        // VulkanRenderer class members
+        VkRenderPass renderPass;
+        std::vector<VkImageView> swapChainImageViews;
+        std::vector<VkFramebuffer> swapChainFramebuffers;
 
-    // Command Buffers
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
+        // Command Buffers
+        VkCommandPool commandPool;
+        std::vector<VkCommandBuffer> commandBuffers;
 
-    // Graphics Pipeline
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+        // Graphics Pipeline
+        VkPipelineLayout pipelineLayout;
+        VkPipeline graphicsPipeline;
 
-    // MVP Uniform Buffer
-    VkBuffer uniformBuffer;
-    VkDeviceMemory uniformBufferMemory;
+        // MVP Uniform Buffer
+        VkBuffer uniformBuffer;
+        VkDeviceMemory uniformBufferMemory;
 
-    // Descriptor Layout and Set
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorPool descriptorPool;
-    VkDescriptorSet descriptorSet;
+        // Descriptor Layout and Set
+        VkDescriptorSetLayout descriptorSetLayout;
+        VkDescriptorPool descriptorPool;
+        VkDescriptorSet descriptorSet;
 
-    // camera position and angle
-    float cameraYaw = 0.0f;
-    float cameraPitch = 0.0f;
-    float cameraDistance = 2.0f;
+        // camera position and angle
+        float cameraYaw = 0.0f;
+        float cameraPitch = 0.0f;
+        float cameraDistance = 2.0f;
 
-    //Texture
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
-    VkSampler textureSampler;
+        //Texture
+        VkImage textureImage;
+        VkDeviceMemory textureImageMemory;
+        VkImageView textureImageView;
+        VkSampler textureSampler;
 
-    VkImage depthImage;
-    VkDeviceMemory depthImageMemory;
-    VkImageView depthImageView;
-    
+        VkImage depthImage;
+        VkDeviceMemory depthImageMemory;
+        VkImageView depthImageView;
+        
 };
 #endif
