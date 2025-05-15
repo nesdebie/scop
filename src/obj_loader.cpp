@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 09:28:27 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 10:08:09 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,9 +110,9 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
             iss >> mtlFilename;
         
             std::ifstream mtlFile("models/" + mtlFilename);
-            if (!mtlFile.is_open()) {
+            if (!mtlFile.is_open() && ends_with(mtlFilename, ".mtl")) {
                 mtlFile.open("models/mtl/" + mtlFilename);
-                if (!mtlFile.is_open()) {
+                if (!mtlFile.is_open() && ends_with(mtlFilename, ".mtl")) {
                     std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
                     return false;
                 }
@@ -130,14 +130,15 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
         
                     // Try models/ first
                     std::ifstream texFile("models/" + texCandidate);
-                    if (texFile.good()) {
+                    if (texFile.good() && ends_with(texCandidate, ".png")) {
+                
                         textureFile = texCandidate;
                         break;
                     }
         
                     // Then models/tex/
                     texFile.open("models/tex/" + texCandidate);
-                    if (texFile.good()) {
+                    if (texFile.good() && ends_with(texCandidate, ".png")) {
                         textureFile = "tex/" + texCandidate;
                         break;
                     }
