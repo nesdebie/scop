@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 12:01:45 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/15 12:03:23 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -495,12 +495,9 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapChainExtent;
     
-        // VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-        // renderPassInfo.clearValueCount = 1;
-        // renderPassInfo.pClearValues = &clearColor;
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-        clearValues[1].depthStencil = {1.0f, 0}; // clear depth buffer to max (far)
+        clearValues[1].depthStencil = {1.0f, 0};
         
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

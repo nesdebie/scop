@@ -18,7 +18,7 @@ void main() {
         float dx = length(dFdx(fragWorldPos));
         float dy = length(dFdy(fragWorldPos));
         float area = dx * dy;
-        float grayscale = clamp(area * 20.0 + 0.5, 0.0, 1.0);
+        float grayscale = clamp(area * 20.0 + 0.5, 0.0, 1.0); // + 0.5 to make sure textureless obj are visible
         outColor = vec4(vec3(grayscale), 1.0);
     }
 }
