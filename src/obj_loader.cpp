@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 14:59:02 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 08:46:58 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
             }
         }
     }
+
     return true;
 }
     

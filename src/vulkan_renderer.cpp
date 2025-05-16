@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 15:02:21 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 09:28:55 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -404,11 +404,16 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     vkCheck(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout),"Failed to create pipeline layout!");
     
     createUniformBuffer();
+    this->textureFile = textureFile;
+
     if (!textureFile.empty()) {
         createTextureImage("models/" + textureFile);
+        textureWasLoadedInitially = true;
     } else {
         createFallbackWhiteTexture();
+        textureWasLoadedInitially = false;
     }
+    
     createFallbackUniformBuffer(!textureFile.empty());
 
     createTextureImageView();
@@ -532,6 +537,8 @@ void VulkanRenderer::mainLoop() {
 }
 
 void VulkanRenderer::handleInput() {
+    static bool tPressed = false;
+
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -540,9 +547,39 @@ void VulkanRenderer::handleInput() {
         cameraPitch += ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPitch -= ROTATION_SPEED;
-    if (glfwGetKey(window, GLFW_KEY_Q))
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
-
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+        if (!tPressed) {
+            tPressed = true;
+            vkDeviceWaitIdle(device);
+        
+            vkDestroySampler(device, textureSampler, nullptr);
+            vkDestroyImageView(device, textureImageView, nullptr);
+            vkDestroyImage(device, textureImage, nullptr);
+            vkFreeMemory(device, textureImageMemory, nullptr);
+            vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        
+            if (!textureOverrideActive) {
+                createTextureImage("models/tex/default.png");
+            } else {
+                if (textureWasLoadedInitially) {
+                    createTextureImage("models/" + textureFile);
+                } else
+                    createFallbackWhiteTexture();
+            }
+        
+            createTextureImageView();
+            createTextureSampler();
+            createDescriptorPool();
+            createDescriptorSet();
+        
+            textureOverrideActive = !textureOverrideActive;
+            textureManuallyApplied = true;
+        }
+    } else
+        tPressed = false;
+        
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
 
@@ -588,6 +625,7 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 }
 
 void VulkanRenderer::drawFrame() {
+
     updateUniformBuffer();
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &imageIndex);
@@ -824,14 +862,14 @@ void VulkanRenderer::createDescriptorPool() {
 }
 
 void VulkanRenderer::createDescriptorSet() {
+    descriptorSet = VK_NULL_HANDLE; // before allocation
+
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &descriptorSetLayout;
-
     vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet), "Failed to allocate descriptor set!");
-
     // UBO binding
     VkDescriptorBufferInfo bufferInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
     VkWriteDescriptorSet descriptorWrite{};
@@ -872,7 +910,6 @@ void VulkanRenderer::createDescriptorSet() {
     fallbackWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     fallbackWrite.descriptorCount = 1;
     fallbackWrite.pBufferInfo = &fallbackInfo;
-
     // Write both
     std::array<VkWriteDescriptorSet, 3> descriptorWrites = { descriptorWrite, samplerWrite, fallbackWrite };
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);

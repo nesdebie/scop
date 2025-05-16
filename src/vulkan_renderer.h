@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/15 15:04:52 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 09:28:28 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,12 @@ class VulkanRenderer {
         glm::vec3 objectCenter = glm::vec3(0.0f);
         float objectRadius = 1.0f;
         float cameraDistance = 2.0f;
+        bool textureManuallyApplied = false;
+        bool textureOverrideActive = false;
+        bool textureWasLoadedInitially = false;
+        std::string originalTextureFile;
+
+
 
     private:
         void initWindow();
@@ -63,6 +69,7 @@ class VulkanRenderer {
         VkDeviceMemory indexBufferMemory;
 
         size_t indexCount = 0;
+        std::string textureFile; // name of texture file from .mtl or .obj
 
         void createVertexBuffer(const std::vector<Vertex>& vertices);
         void createIndexBuffer(const std::vector<uint32_t>& indices);
