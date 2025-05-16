@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 13:13:48 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 15:00:50 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,13 +103,9 @@ class VulkanRenderer {
         // Move objects
         double lastMouseX = 0.0, lastMouseY = 0.0;
         bool leftMousePressed = false;
-        glm::vec3 modelOffset = glm::vec3(0.0f); // ← translation offset
+        glm::vec3 modelOffset = glm::vec3(0.0f); 
         static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
         static void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
-        
-
-        // glm::vec3 objectCenter = glm::vec3(0.0f);
-        // float objectRadius = 1.0f;
 
         // Window
         GLFWwindow* window;
