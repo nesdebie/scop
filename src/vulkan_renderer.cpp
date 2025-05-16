@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 13:14:10 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 13:45:10 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
         }
     }
 
-
     VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
     for (const auto& availablePresentMode : presentModes) {
         if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -252,8 +251,6 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
         viewInfo.subresourceRange.layerCount = 1;
 
         vkCheck(vkCreateImageView(device, &viewInfo, nullptr, &swapChainImageViews[i]), "Failed to create image view!");
-        // createTextureImageView();
-        // createTextureSampler();
     }
     createDepthResources();
 
