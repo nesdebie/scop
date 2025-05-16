@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:04 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 09:28:28 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 13:13:48 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ class VulkanRenderer {
 
         VkBuffer fallbackUniformBuffer;
         VkDeviceMemory fallbackUniformBufferMemory;
-        void createFallbackUniformBuffer(bool hasTexture);
+        void createFallbackUniformBuffer();
 
         void createDepthResources();
         VkFormat findDepthFormat();

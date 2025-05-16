@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 08:46:58 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 10:58:20 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                 Vertex vertex{};
                 vertex.position = temp_positions[posIdx];
                 vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ? temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
-                vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : glm::vec2(0.0f);
+                vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : glm::vec2((temp_positions[posIdx].x + 1.0f) * 0.5f, (temp_positions[posIdx].y + 1.0f) * 0.5f);
         
                 if (uniqueVertices.count(vertex) == 0) {
                     uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());

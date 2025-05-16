@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 09:28:55 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/16 13:14:10 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -413,9 +413,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
         createFallbackWhiteTexture();
         textureWasLoadedInitially = false;
     }
-    
-    createFallbackUniformBuffer(!textureFile.empty());
-
+    createFallbackUniformBuffer();
     createTextureImageView();
     createTextureSampler();
     
@@ -568,7 +566,7 @@ void VulkanRenderer::handleInput() {
                 } else
                     createFallbackWhiteTexture();
             }
-        
+            createFallbackUniformBuffer(); 
             createTextureImageView();
             createTextureSampler();
             createDescriptorPool();
@@ -593,7 +591,6 @@ void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double y
         renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
         renderer->cameraDistance = glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
     }
-    
 }
 
 
@@ -988,8 +985,7 @@ void VulkanRenderer::createTextureSampler() {
 }
 
 
-void VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                                  VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+void VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;
@@ -1010,9 +1006,7 @@ void VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
-void VulkanRenderer::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                                 VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-                                 VkImage& image, VkDeviceMemory& imageMemory) {
+void VulkanRenderer::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -1163,9 +1157,7 @@ void VulkanRenderer::createFallbackWhiteTexture() {
     memcpy(data, whitePixel, imageSize);
     vkUnmapMemory(device, stagingBufferMemory);
 
-    createImage(1, 1, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    createImage(1, 1, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
     transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copyBufferToImage(stagingBuffer, textureImage, 1, 1);
@@ -1176,38 +1168,20 @@ void VulkanRenderer::createFallbackWhiteTexture() {
 }
 
 VkFormat VulkanRenderer::findDepthFormat() {
-    return VK_FORMAT_D32_SFLOAT; // Or use a helper to find supported formats
+    return VK_FORMAT_D32_SFLOAT;
 }
 
 void VulkanRenderer::createDepthResources() {
     VkFormat depthFormat = findDepthFormat();
-
-    createImage(
-        swapChainExtent.width, swapChainExtent.height,
-        depthFormat, VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        depthImage, depthImageMemory
-    );
-
+    createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
     depthImageView = createImageView(depthImage, depthFormat);
-    
-    transitionImageLayout(depthImage, depthFormat,
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    );
+    transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-void VulkanRenderer::createFallbackUniformBuffer(bool hasTexture) {
-    int flag = hasTexture ? 1 : 0;
-
+void VulkanRenderer::createFallbackUniformBuffer() {
+    int flag = 1;
     VkDeviceSize bufferSize = sizeof(int);
-
-    createBuffer(bufferSize,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        fallbackUniformBuffer, fallbackUniformBufferMemory);
-
+    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, fallbackUniformBuffer, fallbackUniformBufferMemory);
     void* data;
     vkMapMemory(device, fallbackUniformBufferMemory, 0, bufferSize, 0, &data);
     memcpy(data, &flag, bufferSize);
