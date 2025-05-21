@@ -1,18 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   vulkan_renderer.cpp                                :+:      :+:    :+:   */
+/*   VulkanRenderer.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 13:45:10 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/21 08:12:43 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "vulkan_renderer.h"
+#include "VulkanRenderer.h"
 
-// Helper function to check Vulkan result
 void vkCheck(VkResult result, const char* msg) {
     if (result != VK_SUCCESS) {
         throw std::runtime_error(msg);
@@ -23,9 +22,7 @@ VulkanRenderer::VulkanRenderer() {}
 
 VulkanRenderer::~VulkanRenderer() {}
 
-bool VulkanRenderer::init(const std::vector<Vertex>& vertices,
-    const std::vector<uint32_t>& index,
-    const std::string& textureFile){
+bool VulkanRenderer::init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile){
     initWindow();
     initVulkan(vertices, index, textureFile);
     return true;
@@ -56,7 +53,6 @@ void VulkanRenderer::initWindow() {
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, mouseMoveCallback);
-    
 }
 
 void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile) {
@@ -904,7 +900,7 @@ void VulkanRenderer::createDescriptorSet() {
     fallbackWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     fallbackWrite.descriptorCount = 1;
     fallbackWrite.pBufferInfo = &fallbackInfo;
-    // Write both
+
     std::array<VkWriteDescriptorSet, 3> descriptorWrites = { descriptorWrite, samplerWrite, fallbackWrite };
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
@@ -1142,7 +1138,7 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t 
 }
 
 void VulkanRenderer::createFallbackWhiteTexture() {
-    uint8_t whitePixel[4] = { 255, 255, 255, 255 }; // RGBA
+    uint8_t whitePixel[4] = { 255, 255, 255, 255 };
     VkDeviceSize imageSize = sizeof(whitePixel);
 
     VkBuffer stagingBuffer;

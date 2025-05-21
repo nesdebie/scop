@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   obj_loader.cpp                                     :+:      :+:    :+:   */
+/*   ObjLoader.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:31:13 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/16 10:58:20 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/21 08:14:54 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "obj_loader.h"
+#include "ObjLoader.h"
 
 
 bool operator==(const Vertex& a, const Vertex& b) {
@@ -65,7 +65,7 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
         } else if (prefix == "vt") {
             glm::vec2 uv;
             iss >> uv.x >> uv.y;
-            uv.y = 1.0f - uv.y;  // Flip V for Vulkan
+            uv.y = 1.0f - uv.y;
             temp_texcoords.push_back(uv);
         } else if (prefix == "vn") {
             glm::vec3 normal;
@@ -100,7 +100,6 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                 faceIndices.push_back(uniqueVertices[vertex]);
             }
         
-            // Triangulate face (fan from vertex 0)
             for (size_t i = 1; i + 1 < faceIndices.size(); ++i) {
                 indices.push_back(faceIndices[0]);
                 indices.push_back(faceIndices[i]);
@@ -128,7 +127,6 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                     std::string texCandidate;
                     mtlIss >> texCandidate;
         
-                    // Try models/ first
                     std::ifstream texFile("models/" + texCandidate);
                     if (texFile.good() && ends_with(texCandidate, ".png")) {
                 
@@ -136,7 +134,6 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
                         break;
                     }
         
-                    // Then models/tex/
                     texFile.open("models/tex/" + texCandidate);
                     if (texFile.good() && ends_with(texCandidate, ".png")) {
                         textureFile = "tex/" + texCandidate;

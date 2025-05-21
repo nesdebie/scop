@@ -1,5 +1,17 @@
-#include "obj_loader.h"
-#include "vulkan_renderer.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
+/*   Updated: 2025/05/21 08:14:13 by nesdebie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "ObjLoader.h"
+#include "VulkanRenderer.h"
 #include <iostream>
 
 int main(int ac, char** av) {
