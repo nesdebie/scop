@@ -1,25 +1,24 @@
-// vulkan_renderer.h
 #ifndef VULKAN_RENDERER_H
 #define VULKAN_RENDERER_H
 
 #include <vector>
-#include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
 #include <string>
 #include <array>
-#include <glm/glm.hpp>
-#include "vertex.h"
-
-# include <stb_image.h>
-
 #include <stdexcept>
 #include <fstream>
 #include <cstring>
 
-# define WINDOW_WIDTH 2400
-# define WINDOW_HEIGHT 1800
-# define WINDOW_DEPTH 42.0f
-# define ROTATION_SPEED 0.001f
+#include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <stb_image.h>
+
+#include "vertex.h"
+
+#define WINDOW_WIDTH 2400
+#define WINDOW_HEIGHT 1800
+#define WINDOW_DEPTH 42.0f
+#define ROTATION_SPEED 0.001f
 
 class VulkanRenderer {
 public:
@@ -28,8 +27,8 @@ public:
 
     VulkanRenderer(const VulkanRenderer&) = delete;
     VulkanRenderer& operator=(const VulkanRenderer&) = delete;
-    VulkanRenderer(VulkanRenderer&&) noexcept;
-    VulkanRenderer& operator=(VulkanRenderer&&) noexcept;
+    VulkanRenderer(VulkanRenderer&&) noexcept = default;
+    VulkanRenderer& operator=(VulkanRenderer&&) noexcept = default;
 
     bool init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::string& textureFile);
     void run();
@@ -41,26 +40,36 @@ public:
     bool textureManuallyApplied = false;
     bool textureOverrideActive = false;
     bool textureWasLoadedInitially = false;
-    std::string originalTextureFile;
 
 private:
+    void initWindow();
+    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, const std::string& textureFile);
+    void mainLoop();
+    void handleInput();
+    void drawFrame();
+    void updateUniformBuffer();
+    void toggleTexture();
+    void prepareTexture(const std::string& textureFilePath);
+
+    // Vulkan initialization helper functions
     void createInstance();
     void createSurface();
     void pickPhysicalDevice();
+    void findQueueFamilies();
     void createLogicalDevice();
     void createCommandPool();
-    void createSwapChain();
+    void querySwapchainSupport();
+    void chooseSwapchainDetails();
+    void createSwapchain(); // fixed name
     void createImageViews();
     void createRenderPass();
-    void createDescriptorSetLayout();
     void createGraphicsPipeline();
     void createFramebuffers();
-    void createCommandBuffers();
-    void createSyncObjects();
+    void createCommandBuffers(const std::vector<uint32_t>& index); // now takes index list
     void createVertexBuffer(const std::vector<Vertex>& vertices);
     void createIndexBuffer(const std::vector<uint32_t>& indices);
     void createUniformBuffer();
-    void updateUniformBuffer();
+    void createDescriptorSetLayout();
     void createDescriptorPool();
     void createDescriptorSet();
     void createTextureImage(const std::string& texturePath);
@@ -69,20 +78,17 @@ private:
     void createFallbackWhiteTexture();
     void createFallbackUniformBuffer();
     void createDepthResources();
+
     VkFormat findDepthFormat();
-
-
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView createImageView(VkImage image, VkFormat format);
+
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+                     VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
+                     VkImage& image, VkDeviceMemory& imageMemory);
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
-    void initWindow();
-    void initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile);
-    void mainLoop();
-    void drawFrame();
-    void handleInput();
 
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
@@ -94,12 +100,14 @@ private:
 
 private:
     GLFWwindow* window = nullptr;
+
     VkInstance instance = VK_NULL_HANDLE;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device = VK_NULL_HANDLE;
     VkQueue graphicsQueue = VK_NULL_HANDLE;
     VkQueue presentQueue = VK_NULL_HANDLE;
+
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
@@ -137,12 +145,20 @@ private:
 
     float cameraYaw = 0.0f;
     float cameraPitch = 0.0f;
-
     double lastMouseX = 0.0, lastMouseY = 0.0;
     bool leftMousePressed = false;
     glm::vec3 modelOffset = glm::vec3(0.0f);
     size_t indexCount = 0;
     std::string textureFile;
+
+    // Newly added state
+    int graphicsFamily = -1;  // needed by multiple Vulkan setup functions
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    std::vector<VkSurfaceFormatKHR> surfaceFormats;
+    std::vector<VkPresentModeKHR> presentModes;
+    VkSurfaceFormatKHR surfaceFormat;
+    VkPresentModeKHR presentMode;
+    VkExtent2D extent;
 };
 
-#endif
+#endif // VULKAN_RENDERER_H
