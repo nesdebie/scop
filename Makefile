@@ -6,7 +6,7 @@
 #    By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 10:40:22 by nesdebie          #+#    #+#              #
-#    Updated: 2025/05/09 10:41:06 by nesdebie         ###   ########.fr        #
+#    Updated: 2025/05/22 10:02:39 by nesdebie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,8 +25,10 @@ SHADER_DIR = shaders
 # Executable name
 NAME = scop
 
-# External tools
-GLSLANG_VALIDATOR = $(EXT_DIR)/glslangValidator
+# Vulkan SDK settings
+VULKAN_SDK_VERSION = 1.4.313.0
+GLSLC = $(EXT_DIR)/glslc
+SDK_GLSLC_PATH = $(VULKAN_SDK_VERSION)/x86_64/bin/glslc
 
 # Libraries and includes
 LIBS = -lvulkan -lglfw
@@ -43,7 +45,7 @@ SPV_VERT = $(SHADER_DIR)/triangle.vert.spv
 SPV_FRAG = $(SHADER_DIR)/triangle.frag.spv
 
 # Default target
-all: $(GLM_DIR) $(STB_HEADER) shaders $(BUILD_DIR) $(NAME)
+all: $(GLM_DIR) $(STB_HEADER) shaderc-install shaders $(BUILD_DIR) $(NAME)
 
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
@@ -55,28 +57,38 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(GLM_DIR):
+	mkdir -p $(EXT_DIR)
 	git clone https://github.com/g-truc/glm.git $(GLM_DIR)
 
 $(STB_HEADER):
 	curl -L https://raw.githubusercontent.com/nothings/stb/master/stb_image.h -o $(STB_HEADER)
 
-$(SPV_VERT): $(VERT_SHADER) $(GLSLANG_VALIDATOR)
-	$(GLSLANG_VALIDATOR) -V $< -o $@
+$(SPV_VERT): $(VERT_SHADER) $(GLSLC)
+	$(GLSLC) -fshader-stage=vert $< -o $@
 
-$(SPV_FRAG): $(FRAG_SHADER) $(GLSLANG_VALIDATOR)
-	$(GLSLANG_VALIDATOR) -V $< -o $@
+$(SPV_FRAG): $(FRAG_SHADER) $(GLSLC)
+	$(GLSLC) -fshader-stage=frag $< -o $@
+
 
 shaders: $(SPV_VERT) $(SPV_FRAG)
 
+shaderc-install:
+	curl -L "https://sdk.lunarg.com/sdk/download/$(VULKAN_SDK_VERSION)/linux/vulkan-sdk-$(VULKAN_SDK_VERSION)-linux.tar.xz?Human=true" \
+	     -o $(EXT_DIR)/vulkan-sdk.tar.xz
+	tar -xf $(EXT_DIR)/vulkan-sdk.tar.xz -C $(EXT_DIR) $(SDK_GLSLC_PATH)
+	mv $(EXT_DIR)/$(SDK_GLSLC_PATH) $(GLSLC)
+	rm -f $(EXT_DIR)/vulkan-sdk.tar.xz
+	rm -rf $(EXT_DIR)/$(VULKAN_SDK_VERSION)
+
+
 clean:
-	rm -rf $(BUILD_DIR) $(NAME) $(SPV_VERT) $(SPV_FRAG)
+	rm -rf $(BUILD_DIR)
 
 fclean: clean
-	rm -rf $(GLM_DIR)
-	rm -f $(STB_HEADER)
+	rm -rf $(EXT_DIR) $(NAME) $(SPV_VERT) $(SPV_FRAG)
 
 re: fclean all
 
 rebuild: clean shaders $(BUILD_DIR) $(NAME)
 
-.PHONY: all clean fclean re rebuild shaders
+.PHONY: all clean fclean re rebuild shaders shaderc-install

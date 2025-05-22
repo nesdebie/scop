@@ -51,7 +51,7 @@ private:
     void toggleTexture();
     void prepareTexture(const std::string& textureFilePath);
 
-    // Vulkan initialization helper functions
+    /* VULKAN INIT HELPER FUNCTIONS */
     void createInstance();
     void createSurface();
     void pickPhysicalDevice();
@@ -60,12 +60,12 @@ private:
     void createCommandPool();
     void querySwapchainSupport();
     void chooseSwapchainDetails();
-    void createSwapchain(); // fixed name
+    void createSwapchain();
     void createImageViews();
     void createRenderPass();
     void createGraphicsPipeline();
     void createFramebuffers();
-    void createCommandBuffers(const std::vector<uint32_t>& index); // now takes index list
+    void createCommandBuffers(const std::vector<uint32_t>& index);
     void createVertexBuffer(const std::vector<Vertex>& vertices);
     void createIndexBuffer(const std::vector<uint32_t>& indices);
     void createUniformBuffer();
@@ -151,8 +151,7 @@ private:
     size_t indexCount = 0;
     std::string textureFile;
 
-    // Newly added state
-    int graphicsFamily = -1;  // needed by multiple Vulkan setup functions
+    int graphicsFamily = -1;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     std::vector<VkSurfaceFormatKHR> surfaceFormats;
     std::vector<VkPresentModeKHR> presentModes;
@@ -161,4 +160,4 @@ private:
     VkExtent2D extent;
 };
 
-#endif // VULKAN_RENDERER_H
+#endif

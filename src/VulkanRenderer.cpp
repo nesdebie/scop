@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/21 23:07:26 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/22 08:25:53 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,12 @@ void vkCheck(VkResult result, const char* msg) {
     }
 }
 
+
 VulkanRenderer::VulkanRenderer() {}
 
+
 VulkanRenderer::~VulkanRenderer() {}
+
 
 bool VulkanRenderer::init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile){
     initWindow();
@@ -28,9 +31,11 @@ bool VulkanRenderer::init(const std::vector<Vertex>& vertices, const std::vector
     return true;
 }
 
+
 void VulkanRenderer::run() {
     mainLoop();
 }
+
 
 void VulkanRenderer::cleanup() {
     vkDestroySwapchainKHR(device, swapChain, nullptr);
@@ -45,16 +50,15 @@ void VulkanRenderer::cleanup() {
 
 void VulkanRenderer::initWindow() {
     glfwInit();
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "scop is dope", nullptr, nullptr);
     glfwSetWindowUserPointer(window, this);
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, mouseMoveCallback);
 }
-#include <iostream>
+
+
 void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile) {
     createInstance();
     createSurface();
@@ -71,13 +75,11 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     createGraphicsPipeline();
     createUniformBuffer();
     this->textureFile = textureFile;
-    if (!textureFile.empty()) {
+    textureWasLoadedInitially = !textureFile.empty();
+    if (textureWasLoadedInitially)
         createTextureImage("models/" + textureFile);
-        textureWasLoadedInitially = true;
-    } else {
+    else
         createFallbackWhiteTexture();
-        textureWasLoadedInitially = false;
-    }
     createFallbackUniformBuffer();
     createTextureImageView();
     createTextureSampler();
@@ -88,6 +90,7 @@ void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::
     createFramebuffers();
     createCommandBuffers(index);
 }
+
 
 void VulkanRenderer::createFramebuffers() {
     swapChainFramebuffers.resize(swapChainImageViews.size());
@@ -109,6 +112,7 @@ void VulkanRenderer::createFramebuffers() {
         vkCheck(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
     }
 }
+
 
 void VulkanRenderer::createCommandBuffers(const std::vector<uint32_t>& index) {
     commandBuffers.resize(swapChainFramebuffers.size());
@@ -174,10 +178,12 @@ void VulkanRenderer::createInstance() {
     vkCheck(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create Vulkan instance!");
 }
 
+
 void VulkanRenderer::createSurface() {
     if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
         throw std::runtime_error("Failed to create window surface!");
 }
+
 
 void VulkanRenderer::pickPhysicalDevice() {
     uint32_t deviceCount = 0;
@@ -189,6 +195,7 @@ void VulkanRenderer::pickPhysicalDevice() {
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
     physicalDevice = devices[0];
 }
+
 
 void VulkanRenderer::findQueueFamilies() {
     uint32_t queueFamilyCount = 0;
@@ -216,6 +223,7 @@ void VulkanRenderer::findQueueFamilies() {
     this->graphicsFamily = graphicsFamily;
 }
 
+
 void VulkanRenderer::createLogicalDevice() {
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -240,6 +248,7 @@ void VulkanRenderer::createLogicalDevice() {
     presentQueue = graphicsQueue;
 }
 
+
 void VulkanRenderer::createCommandPool() {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -248,6 +257,7 @@ void VulkanRenderer::createCommandPool() {
 
     vkCheck(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool), "Failed to create command pool!");
 }
+
 
 void VulkanRenderer::querySwapchainSupport() {
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
@@ -262,6 +272,8 @@ void VulkanRenderer::querySwapchainSupport() {
     presentModes.resize(presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
 }
+
+
 void VulkanRenderer::chooseSwapchainDetails() {
     surfaceFormat = surfaceFormats[0];
     for (const auto& availableFormat : surfaceFormats) {
@@ -286,6 +298,7 @@ void VulkanRenderer::chooseSwapchainDetails() {
         extent.height = WINDOW_HEIGHT;
     }
 }
+
 
 void VulkanRenderer::createSwapchain() {
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
@@ -322,6 +335,8 @@ void VulkanRenderer::createSwapchain() {
     swapChainImageFormat = surfaceFormat.format;
     swapChainExtent = extent;
 }
+
+
 void VulkanRenderer::createImageViews() {
     swapChainImageViews.resize(swapChainImages.size());
     for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -594,6 +609,7 @@ void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int act
     }
 }
 
+
 void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
     auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
     if (!renderer || !renderer->leftMousePressed) return;
@@ -608,6 +624,7 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
     renderer->modelOffset.x += dx * sensitivity;
     renderer->modelOffset.y -= dy * sensitivity;
 }
+
 
 void VulkanRenderer::drawFrame() {
 
@@ -635,6 +652,7 @@ void VulkanRenderer::drawFrame() {
     vkQueueWaitIdle(presentQueue);
 }
 
+
 std::vector<char> VulkanRenderer::readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
     if (!file.is_open())
@@ -650,6 +668,7 @@ std::vector<char> VulkanRenderer::readFile(const std::string& filename) {
     return buffer;
 }
 
+
 VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -662,6 +681,7 @@ VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char>& code)
 
     return shaderModule;
 }
+
 
 uint32_t VulkanRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -704,6 +724,7 @@ void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
     vkUnmapMemory(device, vertexBufferMemory);
     
 }
+
 
 void VulkanRenderer::createDescriptorSetLayout() {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
@@ -780,6 +801,7 @@ void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices) {
     
 }
 
+
 void VulkanRenderer::createUniformBuffer() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -827,6 +849,7 @@ void VulkanRenderer::updateUniformBuffer() {
     vkUnmapMemory(device, uniformBufferMemory);
 }
 
+
 void VulkanRenderer::createDescriptorPool() {
     std::array<VkDescriptorPoolSize, 3> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -845,6 +868,7 @@ void VulkanRenderer::createDescriptorPool() {
 
     vkCheck(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool!");
 }
+
 
 void VulkanRenderer::createDescriptorSet() {
     descriptorSet = VK_NULL_HANDLE; // before allocation
@@ -900,6 +924,7 @@ void VulkanRenderer::createDescriptorSet() {
     vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 }
 
+
 void VulkanRenderer::createTextureImage(const std::string& texturePath) {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(texturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); //
@@ -954,6 +979,7 @@ void VulkanRenderer::createTextureImageView() {
     textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
 }
 
+
 void VulkanRenderer::createTextureSampler() {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -994,6 +1020,7 @@ void VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
+
 void VulkanRenderer::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1023,6 +1050,7 @@ void VulkanRenderer::createImage(uint32_t width, uint32_t height, VkFormat forma
     vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory), "Failed to allocate image memory");
     vkBindImageMemory(device, image, imageMemory, 0);
 }
+
 
 void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
     (void)format; // Unused parameter
@@ -1091,6 +1119,7 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkIma
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
+
 void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1132,6 +1161,7 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
+
 void VulkanRenderer::createFallbackWhiteTexture() {
     uint8_t whitePixel[4] = { 255, 255, 255, 255 };
     VkDeviceSize imageSize = sizeof(whitePixel);
@@ -1155,9 +1185,11 @@ void VulkanRenderer::createFallbackWhiteTexture() {
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
+
 VkFormat VulkanRenderer::findDepthFormat() {
     return VK_FORMAT_D32_SFLOAT;
 }
+
 
 void VulkanRenderer::createDepthResources() {
     VkFormat depthFormat = findDepthFormat();
@@ -1165,6 +1197,7 @@ void VulkanRenderer::createDepthResources() {
     depthImageView = createImageView(depthImage, depthFormat);
     transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
+
 
 void VulkanRenderer::createFallbackUniformBuffer() {
     int flag = 1;
