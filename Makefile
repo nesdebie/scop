@@ -6,7 +6,7 @@
 #    By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 10:40:22 by nesdebie          #+#    #+#              #
-#    Updated: 2025/05/22 10:20:42 by nesdebie         ###   ########.fr        #
+#    Updated: 2025/05/22 10:59:01 by nesdebie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,10 +74,10 @@ shaderc-install:
 
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(EXT_DIR)
 
 fclean: clean
-	rm -rf $(EXT_DIR) $(NAME) $(SPV_VERT) $(SPV_FRAG)
+	rm -rf $(NAME) $(SPV_VERT) $(SPV_FRAG)
 
 re: fclean all
 
