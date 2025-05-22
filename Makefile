@@ -6,15 +6,13 @@
 #    By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 10:40:22 by nesdebie          #+#    #+#              #
-#    Updated: 2025/05/22 10:02:39 by nesdebie         ###   ########.fr        #
+#    Updated: 2025/05/22 10:20:42 by nesdebie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# Compiler settings
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -O2
 
-# Project structure
 SRC_DIR = src
 BUILD_DIR = build
 EXT_DIR = external
@@ -22,29 +20,23 @@ GLM_DIR = $(EXT_DIR)/glm
 STB_HEADER = $(EXT_DIR)/stb_image.h
 SHADER_DIR = shaders
 
-# Executable name
 NAME = scop
 
-# Vulkan SDK settings
 VULKAN_SDK_VERSION = 1.4.313.0
 GLSLC = $(EXT_DIR)/glslc
 SDK_GLSLC_PATH = $(VULKAN_SDK_VERSION)/x86_64/bin/glslc
 
-# Libraries and includes
 LIBS = -lvulkan -lglfw
 INCLUDES = -I$(SRC_DIR) -I$(GLM_DIR) -I$(EXT_DIR)
 
-# Source files
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-# Shader files
 VERT_SHADER = $(SHADER_DIR)/triangle.vert.glsl
 FRAG_SHADER = $(SHADER_DIR)/triangle.frag.glsl
 SPV_VERT = $(SHADER_DIR)/triangle.vert.spv
 SPV_FRAG = $(SHADER_DIR)/triangle.frag.spv
 
-# Default target
 all: $(GLM_DIR) $(STB_HEADER) shaderc-install shaders $(BUILD_DIR) $(NAME)
 
 $(NAME): $(OBJS)
