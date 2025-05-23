@@ -1,5 +1,5 @@
 # scop
-
+A C++ progam showing a 3D object <file>.obj in a dedicated window using Vulkan and GLFW.
 
 1) Pre-installed GLFW
 ```
