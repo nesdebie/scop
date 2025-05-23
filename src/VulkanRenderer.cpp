@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/22 11:51:16 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 13:36:46 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,57 @@ void VulkanRenderer::cleanup() {
     glfwTerminate();
 }
 
-bool VulkanRenderer::init(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile){
+bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     initWindow();
-    initVulkan(vertices, index, textureFile);
+    createInstance();
+    createSurface();
+    pickPhysicalDevice();
+    findQueueFamilies();
+    createLogicalDevice();
+    createCommandPool();
+    querySwapchainSupport();
+    chooseSwapchainDetails();
+    createSwapchain();
+    createImageViews();
+    createDepthResources();
+    createRenderPass();
+    createGraphicsPipeline();
+    createUniformBuffer();
+    createFallbackUniformBuffer();
+    createDescriptorSetLayout();
+
+    for (const auto& pkg : meshPackages) {
+        GpuMesh mesh;
+        mesh.indexCount = pkg.indices.size();
+        mesh.textureFile = pkg.textureFile;
+    
+        createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
+        createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
+        if (!pkg.textureFile.empty())
+            createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
+    
+        MaterialUBO mat{};
+        mat.color = pkg.textureFile.empty() ? pkg.diffuseColor : glm::vec3(0.0f); // any color, won't be used if textured
+        mat.useTexture = pkg.textureFile.empty() ? 0 : 1;
+
+        createBuffer(sizeof(MaterialUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    mesh.materialBuffer, mesh.materialBufferMemory);
+
+        void* data;
+        vkMapMemory(device, mesh.materialBufferMemory, 0, sizeof(MaterialUBO), 0, &data);
+        memcpy(data, &mat, sizeof(MaterialUBO));
+        vkUnmapMemory(device, mesh.materialBufferMemory);
+
+    
+        gpuMeshes.push_back(mesh);
+    }
+    createDescriptorPool();
+    for (auto& mesh : gpuMeshes) {
+        createDescriptorSet(mesh);
+    }
+    createFramebuffers();
+    createCommandBuffers();
     return true;
 }
 
@@ -90,39 +138,7 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
 
 
-/* INIT VULKAN */
-void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile) {
-    createInstance();
-    createSurface();
-    pickPhysicalDevice();
-    findQueueFamilies();
-    createLogicalDevice();
-    createCommandPool();
-    querySwapchainSupport();
-    chooseSwapchainDetails();
-    createSwapchain();
-    createImageViews();
-    createDepthResources();
-    createRenderPass();
-    createGraphicsPipeline();
-    createUniformBuffer();
-    this->textureFile = textureFile;
-    textureWasLoadedInitially = !textureFile.empty();
-    if (textureWasLoadedInitially)
-        createTextureImage("models/" + textureFile);
-    else
-        createFallbackWhiteTexture();
-    createFallbackUniformBuffer();
-    createTextureImageView();
-    createTextureSampler();
-    createDescriptorPool();
-    createDescriptorSet();
-    createVertexBuffer(vertices);
-    createIndexBuffer(index);
-    createFramebuffers();
-    createCommandBuffers(index);
-}
-
+/* VULKAN INIT */
 void VulkanRenderer::createInstance() {
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -430,8 +446,8 @@ void VulkanRenderer::createGraphicsPipeline() {
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.cullMode = VK_CULL_MODE_NONE;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -516,18 +532,19 @@ void VulkanRenderer::createUniformBuffer() {
     vkBindBufferMemory(device, uniformBuffer, uniformBufferMemory, 0);
 }
 
-void VulkanRenderer::createTextureImage(const std::string& texturePath) {
+void VulkanRenderer::createTextureImage(const std::string& path, VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler) {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(texturePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha); //
+    stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     if (!pixels)
-        throw std::runtime_error("Failed to load texture image: " + texturePath);
+        throw std::runtime_error("Failed to load texture image: " + path);
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                 stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -535,35 +552,34 @@ void VulkanRenderer::createTextureImage(const std::string& texturePath) {
     vkUnmapMemory(device, stagingBufferMemory);
     stbi_image_free(pixels);
 
-    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-}
+    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, memory);
 
-void VulkanRenderer::createFallbackWhiteTexture() {
-    uint8_t whitePixel[4] = { 255, 255, 255, 255 };
-    VkDeviceSize imageSize = sizeof(whitePixel);
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, whitePixel, imageSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    createImage(1, 1, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
-
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(stagingBuffer, textureImage, 1, 1);
-    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+    view = createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
+
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+    vkCheck(vkCreateSampler(device, &samplerInfo, nullptr, &sampler), "Failed to create texture sampler");
 }
 
 void VulkanRenderer::createFallbackUniformBuffer() {
@@ -599,78 +615,84 @@ void VulkanRenderer::createTextureSampler() {
 }
 
 void VulkanRenderer::createDescriptorPool() {
+    uint32_t meshCount = static_cast<uint32_t>(gpuMeshes.size());
     std::array<VkDescriptorPoolSize, 3> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = 1;
+    poolSizes[0].descriptorCount = meshCount;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = 1;
-    poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; // for fallback flag
-    poolSizes[2].descriptorCount = 1;
+    poolSizes[1].descriptorCount = meshCount;
+    poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[2].descriptorCount = meshCount;    
     
     
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = 1;
+    poolInfo.maxSets = meshCount;
 
     vkCheck(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool), "Failed to create descriptor pool!");
 }
 
-void VulkanRenderer::createDescriptorSet() {
-    descriptorSet = VK_NULL_HANDLE;
+void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
+    VkDescriptorBufferInfo materialInfo = { mesh.materialBuffer, 0, sizeof(MaterialUBO) };
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &descriptorSetLayout;
-    vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet), "Failed to allocate descriptor set!");
+    vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &mesh.descriptorSet), "Failed to allocate descriptor set");
 
-    VkDescriptorBufferInfo bufferInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = descriptorSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = &bufferInfo;
+    VkDescriptorBufferInfo uboInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
+    //VkDescriptorBufferInfo fallbackInfo = { fallbackUniformBuffer, 0, sizeof(int) };
 
     VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = textureImageView;
-    imageInfo.sampler = textureSampler;
+    if (!mesh.textureFile.empty()) {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mesh.textureImageView;
+        imageInfo.sampler = mesh.textureSampler;
+    } else {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = VK_NULL_HANDLE;
+        imageInfo.sampler = VK_NULL_HANDLE;
+    }
+    
 
-    VkWriteDescriptorSet samplerWrite{};
-    samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    samplerWrite.dstSet = descriptorSet;
-    samplerWrite.dstBinding = 1;
-    samplerWrite.dstArrayElement = 0;
-    samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerWrite.descriptorCount = 1;
-    samplerWrite.pImageInfo = &imageInfo;
+    std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = mesh.descriptorSet;
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pBufferInfo = &uboInfo;
 
-    VkDescriptorBufferInfo fallbackInfo{};
-    fallbackInfo.buffer = fallbackUniformBuffer;
-    fallbackInfo.offset = 0;
-    fallbackInfo.range = sizeof(int);
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = mesh.descriptorSet;
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pImageInfo = &imageInfo;    
 
-    VkWriteDescriptorSet fallbackWrite{};
-    fallbackWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    fallbackWrite.dstSet = descriptorSet;
-    fallbackWrite.dstBinding = 2;
-    fallbackWrite.dstArrayElement = 0;
-    fallbackWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    fallbackWrite.descriptorCount = 1;
-    fallbackWrite.pBufferInfo = &fallbackInfo;
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = mesh.descriptorSet;
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pBufferInfo = &materialInfo;
 
-    std::array<VkWriteDescriptorSet, 3> descriptorWrites = { descriptorWrite, samplerWrite, fallbackWrite };
-    vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+    std::vector<VkWriteDescriptorSet> writes = {
+        descriptorWrites[0],
+        descriptorWrites[2]
+    };
+    if (imageInfo.imageView != VK_NULL_HANDLE && imageInfo.sampler != VK_NULL_HANDLE)
+        writes.insert(writes.begin() + 1, descriptorWrites[1]);
+    
+    vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
-void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
+void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices, VkBuffer& buffer, VkDeviceMemory& memory) {
     if (vertices.empty())
         throw std::runtime_error("Vertex list is empty — cannot create vertex buffer.");
 
@@ -681,28 +703,27 @@ void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices) {
     bufferInfo.size = bufferSize;
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer), "Failed to create vertex buffer!");
+    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer), "Failed to create vertex buffer!");
+
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    
-    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &vertexBufferMemory), "Failed to allocate vertex buffer memory!");
-    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &memory), "Failed to allocate vertex buffer memory!");
+    vkBindBufferMemory(device, buffer, memory, 0);
+
     void* data;
-    VkResult result = vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
-    if (result != VK_SUCCESS || data == nullptr)
-        throw std::runtime_error("Failed to map vertex buffer memory!");
-    memcpy(data, vertices.data(), (size_t) bufferSize);
-    vkUnmapMemory(device, vertexBufferMemory);
-    
+    vkMapMemory(device, memory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
+    vkUnmapMemory(device, memory);
 }
 
-void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices) {
-    indexCount = indices.size();
-
+void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices, VkBuffer& buffer, VkDeviceMemory& memory) {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
     VkBufferCreateInfo bufferInfo{};
@@ -710,28 +731,24 @@ void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices) {
     bufferInfo.size = bufferSize;
     bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &indexBuffer), "Failed to create index buffer!");
+    vkCheck(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer), "Failed to create index buffer!");
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, indexBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &indexBufferMemory), "Failed to allocate index buffer memory!");
-    vkBindBufferMemory(device, indexBuffer, indexBufferMemory, 0);
+    vkCheck(vkAllocateMemory(device, &allocInfo, nullptr, &memory), "Failed to allocate index buffer memory!");
+    vkBindBufferMemory(device, buffer, memory, 0);
 
     void* data;
-    vkMapMemory(device, indexBufferMemory, 0, bufferSize, 0, &data);
-    if (!data)
-        throw std::runtime_error("Failed to map index buffer memory!");
-    memcpy(data, indices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, indexBufferMemory);
-    
+    vkMapMemory(device, memory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+    vkUnmapMemory(device, memory);
 }
 
 void VulkanRenderer::createFramebuffers() {
@@ -755,7 +772,7 @@ void VulkanRenderer::createFramebuffers() {
     }
 }
 
-void VulkanRenderer::createCommandBuffers(const std::vector<uint32_t>& index) {
+void VulkanRenderer::createCommandBuffers() {
     commandBuffers.resize(swapChainFramebuffers.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -785,13 +802,18 @@ void VulkanRenderer::createCommandBuffers(const std::vector<uint32_t>& index) {
 
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
+
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(index.size()), 1, 0, 0, 0);
+
+        for (const auto& mesh : gpuMeshes) {
+            vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &mesh.descriptorSet, 0, nullptr);
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &mesh.vertexBuffer, offsets);
+            vkCmdBindIndexBuffer(commandBuffers[i], mesh.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(commandBuffers[i], mesh.indexCount, 1, 0, 0, 0);
+        }
+
         vkCmdEndRenderPass(commandBuffers[i]);
         vkEndCommandBuffer(commandBuffers[i]);
     }
@@ -815,7 +837,7 @@ void VulkanRenderer::mainLoop() {
 
 void VulkanRenderer::handleInput() {
     static bool tPressed = false;
-
+    
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= ROTATION_SPEED;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -837,26 +859,35 @@ void VulkanRenderer::handleInput() {
             vkFreeMemory(device, textureImageMemory, nullptr);
             vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         
-            if (!textureOverrideActive) {
-                createTextureImage("models/tex/default.png");
-            } else {
-                if (textureWasLoadedInitially) {
-                    createTextureImage("models/" + textureFile);
-                } else
-                    createFallbackWhiteTexture();
+            for (auto& mesh : gpuMeshes) {
+                vkDestroySampler(device, mesh.textureSampler, nullptr);
+                vkDestroyImageView(device, mesh.textureImageView, nullptr);
+                vkDestroyImage(device, mesh.textureImage, nullptr);
+                vkFreeMemory(device, mesh.textureMemory, nullptr);
             }
-            createFallbackUniformBuffer(); 
-            createTextureImageView();
-            createTextureSampler();
+            
             createDescriptorPool();
-            createDescriptorSet();
-        
+
+            for (auto& mesh : gpuMeshes) {
+                if (!textureOverrideActive) {
+                    createTextureImage("models/tex/default.png", mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
+                } else {
+                    if (!mesh.textureFile.empty()) {
+                        createTextureImage("models/" + mesh.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
+                    } else {
+                        return;
+                    }
+                }
+                createDescriptorSet(mesh);
+            }
+            vkDeviceWaitIdle(device);
+            createCommandBuffers();
+            
             textureOverrideActive = !textureOverrideActive;
             textureManuallyApplied = true;
         }
     } else
-        tPressed = false;
-        
+        tPressed = false;  
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
 

@@ -6,19 +6,14 @@ layout(location = 3) in vec3 fragWorldPos;
 layout(location = 0) out vec4 outColor;
 
 layout(binding = 1) uniform sampler2D texSampler;
-layout(binding = 2) uniform FallbackFlags {
+layout(binding = 2) uniform Material {
+    vec3 color;
     int useTexture;
-};
+} material;
 
 void main() {
-    if (useTexture == 1) {
-        vec3 color = texture(texSampler, fragTexCoord).rgb; // ignore alpha
-        outColor = vec4(color, 1.0);                         // force alpha = 1
-    } else {
-        float dx = length(dFdx(fragWorldPos));
-        float dy = length(dFdy(fragWorldPos));
-        float area = dx * dy;
-        float grayscale = clamp(area * 20.0 + 0.5, 0.0, 1.0); // + 0.5 to make sure textureless obj are visible
-        outColor = vec4(vec3(grayscale), 1.0);
-    }
+    if (material.useTexture == 1)
+        outColor = texture(texSampler, fragTexCoord);
+    else
+        outColor = vec4(material.color, 1.0);
 }
