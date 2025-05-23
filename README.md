@@ -16,3 +16,13 @@ WARNING: [Loader Message] Code 0 : terminator_CreateInstance: Failed to CreateIn
 	apiVersion        = 4206847 (1.3.255)
 	apiVersion        = 4206847 (1.3.255)
 ```
+
+3) Launch
+```
+make
+```
+
+4) Usage
+```
+./scop models/<name>.obj
+```
