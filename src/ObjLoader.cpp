@@ -79,44 +79,6 @@ static void parseFaceLine(std::istringstream& iss, const std::vector<glm::vec3>&
     }
 }
 
-// static bool parseMTL(const std::string& mtlFilename, std::string& textureFile) {
-//     std::ifstream mtlFile("models/" + mtlFilename);
-//     if (!mtlFile.is_open() && ends_with(mtlFilename, ".mtl")) {
-//         mtlFile.open("models/mtl/" + mtlFilename);
-//     }
-//     if (!mtlFile.is_open()) {
-//         std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
-//         return false;
-//     }
-
-//     std::string mtlLine;
-//     while (std::getline(mtlFile, mtlLine)) {
-//         std::istringstream mtlIss(mtlLine);
-//         std::string mtlPrefix;
-//         mtlIss >> mtlPrefix;
-
-//         if (mtlPrefix == "map_Kd") {
-//             std::string texCandidate;
-//             mtlIss >> texCandidate;
-
-//             std::ifstream texFile("models/" + texCandidate);
-//             if (texFile.good() && ends_with(texCandidate, ".png")) {
-//                 textureFile = texCandidate;
-//                 return true;
-//             }
-
-//             texFile.open("models/tex/" + texCandidate);
-//             if (texFile.good() && ends_with(texCandidate, ".png")) {
-//                 textureFile = "tex/" + texCandidate;
-//                 return true;
-//             }
-
-//             std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texCandidate << std::endl;
-//         }
-//     }
-//     return true;
-// }
-
 bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
     if (!isValidOBJFilename(filename)) {
         std::cerr << "Filename is invalid." << std::endl;

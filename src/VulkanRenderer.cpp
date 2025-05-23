@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/23 11:45:09 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 11:54:56 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
 
-
     for (const auto& pkg : meshPackages) {
         GpuMesh mesh;
         mesh.indexCount = pkg.indices.size();
@@ -64,8 +63,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
             createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
         else
             createFallbackWhiteTexture(mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
-
-        //createDescriptorSet(mesh);
         gpuMeshes.push_back(mesh);
     }
     createDescriptorPool();
@@ -76,7 +73,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createCommandBuffers();
     return true;
 }
-
 
 
 
@@ -130,39 +126,7 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
 
 
-/* INIT VULKAN */
-// void VulkanRenderer::initVulkan(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& index, const std::string& textureFile) {
-//     createInstance();
-//     createSurface();
-//     pickPhysicalDevice();
-//     findQueueFamilies();
-//     createLogicalDevice();
-//     createCommandPool();
-//     querySwapchainSupport();
-//     chooseSwapchainDetails();
-//     createSwapchain();
-//     createImageViews();
-//     createDepthResources();
-//     createRenderPass();
-//     createGraphicsPipeline();
-//     createUniformBuffer();
-//     this->textureFile = textureFile;
-//     textureWasLoadedInitially = !textureFile.empty();
-//     if (textureWasLoadedInitially)
-//         createTextureImage("models/" + textureFile);
-//     else
-//         createFallbackWhiteTexture();
-//     createFallbackUniformBuffer();
-//     createTextureImageView();
-//     createTextureSampler();
-//     createDescriptorPool();
-//     createDescriptorSet();
-//     createVertexBuffer(vertices);
-//     createIndexBuffer(index);
-//     createFramebuffers();
-//     createCommandBuffers(index);
-// }
-
+/* VULKAN INIT */
 void VulkanRenderer::createInstance() {
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -871,7 +835,6 @@ void VulkanRenderer::createCommandBuffers() {
         vkEndCommandBuffer(commandBuffers[i]);
     }
 }
-
 
 
 
