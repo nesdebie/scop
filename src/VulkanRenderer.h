@@ -47,7 +47,6 @@ class VulkanRenderer {
         bool textureManuallyApplied = false;
         bool textureOverrideActive = false;
         bool textureWasLoadedInitially = false;
-        bool forceClockwiseWinding = false;
 
     private:
         struct GpuMesh {

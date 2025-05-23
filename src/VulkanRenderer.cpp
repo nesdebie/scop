@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/23 11:36:58 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 11:45:09 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -470,8 +470,8 @@ void VulkanRenderer::createGraphicsPipeline() {
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = forceClockwiseWinding ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizer.cullMode = VK_CULL_MODE_NONE;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
@@ -891,21 +891,6 @@ void VulkanRenderer::mainLoop() {
 
 void VulkanRenderer::handleInput() {
     static bool tPressed = false;
-    static bool yPressed = false;
-    
-    if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-        if (!yPressed) {
-            yPressed = true;
-            forceClockwiseWinding = !forceClockwiseWinding;
-            vkDeviceWaitIdle(device);
-            vkDestroyPipeline(device, graphicsPipeline, nullptr);
-            createGraphicsPipeline();
-            createCommandBuffers();
-        }
-    } else {
-        yPressed = false;
-    }
-    
     
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= ROTATION_SPEED;
