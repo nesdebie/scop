@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/23 11:21:40 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 12:11:29 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,9 @@ struct SubMesh {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     std::string textureFile;
+    glm::vec3 diffuseColor = glm::vec3(1.0f);
 };
+
 
 bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes);
 

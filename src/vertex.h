@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/08 09:18:21 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 12:08:59 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
+    glm::vec3 color;
     static VkVertexInputBindingDescription getBindingDescription();
     static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
 };

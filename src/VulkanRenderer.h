@@ -34,6 +34,7 @@ class VulkanRenderer {
             std::vector<Vertex> vertices;
             std::vector<uint32_t> indices;
             std::string textureFile;
+            glm::vec3 diffuseColor;
         };
         
         bool init(const std::vector<MeshPackage>& meshPackages);
@@ -61,8 +62,15 @@ class VulkanRenderer {
             VkImageView textureImageView;
             VkSampler textureSampler;
             VkDescriptorSet descriptorSet;
+            VkBuffer materialBuffer;
+            VkDeviceMemory materialBufferMemory;
         };
 
+        struct alignas(16) MaterialUBO {
+            glm::vec3 color;
+            int useTexture;
+        };
+        
         std::vector<GpuMesh> gpuMeshes;
 
         GLFWwindow* window = nullptr;

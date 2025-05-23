@@ -94,10 +94,10 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
     std::vector<glm::vec3> temp_positions;
     std::vector<glm::vec3> temp_normals;
     std::vector<glm::vec2> temp_texcoords;
-
     std::unordered_map<Vertex, uint32_t, VertexHash> uniqueVertices;
-    std::string line, mtlFilename;
     std::map<std::string, std::string> materialTextures;
+    std::map<std::string, glm::vec3> materialColors;
+    std::string line, mtlFilename;
     std::string currentMaterial;
     SubMesh currentSubMesh;
 
@@ -115,12 +115,15 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
             if (!mtl.is_open() && ends_with(mtlFilename, ".mtl"))
                 mtl.open("models/mtl/" + mtlFilename);
             std::string mline, matName, texName;
+            glm::vec3 kdColor(1.0f);
             while (std::getline(mtl, mline)) {
                 std::istringstream miss(mline);
                 std::string token;
                 miss >> token;
-                if (token == "newmtl") miss >> matName;
-                else if (token == "map_Kd") {
+                if (token == "newmtl") {
+                    miss >> matName;
+                    kdColor = glm::vec3(1.0f); // default
+                } else if (token == "map_Kd") {
                     miss >> texName;
                     if (!texName.empty()) {
                         std::ifstream texFile("models/" + texName);
@@ -134,8 +137,13 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
                             continue;
                         }
                         std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texName << std::endl;
-                        
                     }
+                } else if (token == "Kd") {
+                    float r, g, b;
+                    miss >> r >> g >> b;
+                    kdColor = glm::vec3(r, g, b);
+                    std::cerr << "Material color: " << matName << " " << kdColor.x << " " << kdColor.y << " " << kdColor.z << std::endl;
+                    materialColors[matName] = kdColor;
                 }
             }
         } else if (prefix == "usemtl") {
@@ -146,6 +154,7 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
             }
             iss >> currentMaterial;
             currentSubMesh.textureFile = materialTextures[currentMaterial];
+            currentSubMesh.diffuseColor = materialColors.count(currentMaterial) ? materialColors[currentMaterial] : glm::vec3(1.0f);
         } else if (prefix == "f") {
             parseFaceLine(iss, temp_positions, temp_normals, temp_texcoords,
                           currentSubMesh.vertices, currentSubMesh.indices, uniqueVertices);
@@ -158,3 +167,4 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
 
     return true;
 }
+

@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/23 11:54:56 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/23 13:36:46 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,14 +55,26 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         GpuMesh mesh;
         mesh.indexCount = pkg.indices.size();
         mesh.textureFile = pkg.textureFile;
-
+    
         createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
         createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
-
         if (!pkg.textureFile.empty())
             createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
-        else
-            createFallbackWhiteTexture(mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
+    
+        MaterialUBO mat{};
+        mat.color = pkg.textureFile.empty() ? pkg.diffuseColor : glm::vec3(0.0f); // any color, won't be used if textured
+        mat.useTexture = pkg.textureFile.empty() ? 0 : 1;
+
+        createBuffer(sizeof(MaterialUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    mesh.materialBuffer, mesh.materialBufferMemory);
+
+        void* data;
+        vkMapMemory(device, mesh.materialBufferMemory, 0, sizeof(MaterialUBO), 0, &data);
+        memcpy(data, &mat, sizeof(MaterialUBO));
+        vkUnmapMemory(device, mesh.materialBufferMemory);
+
+    
         gpuMeshes.push_back(mesh);
     }
     createDescriptorPool();
@@ -570,51 +582,6 @@ void VulkanRenderer::createTextureImage(const std::string& path, VkImage& image,
     vkCheck(vkCreateSampler(device, &samplerInfo, nullptr, &sampler), "Failed to create texture sampler");
 }
 
-void VulkanRenderer::createFallbackWhiteTexture(VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler) {
-    uint8_t whitePixel[4] = { 255, 255, 255, 255 };
-    VkDeviceSize imageSize = sizeof(whitePixel);
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                 stagingBuffer, stagingBufferMemory);
-
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, whitePixel, imageSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    createImage(1, 1, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image, memory);
-
-    transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(stagingBuffer, image, 1, 1);
-    transitionImageLayout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-    view = createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
-
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 16;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-    vkCheck(vkCreateSampler(device, &samplerInfo, nullptr, &sampler), "Failed to create fallback sampler");
-}
-
 void VulkanRenderer::createFallbackUniformBuffer() {
     int flag = 1;
     VkDeviceSize bufferSize = sizeof(int);
@@ -668,6 +635,8 @@ void VulkanRenderer::createDescriptorPool() {
 }
 
 void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
+    VkDescriptorBufferInfo materialInfo = { mesh.materialBuffer, 0, sizeof(MaterialUBO) };
+
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
@@ -676,12 +645,19 @@ void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
     vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &mesh.descriptorSet), "Failed to allocate descriptor set");
 
     VkDescriptorBufferInfo uboInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
-    VkDescriptorBufferInfo fallbackInfo = { fallbackUniformBuffer, 0, sizeof(int) };
+    //VkDescriptorBufferInfo fallbackInfo = { fallbackUniformBuffer, 0, sizeof(int) };
 
     VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = mesh.textureImageView;
-    imageInfo.sampler = mesh.textureSampler;
+    if (!mesh.textureFile.empty()) {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = mesh.textureImageView;
+        imageInfo.sampler = mesh.textureSampler;
+    } else {
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = VK_NULL_HANDLE;
+        imageInfo.sampler = VK_NULL_HANDLE;
+    }
+    
 
     std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
@@ -697,16 +673,23 @@ void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
     descriptorWrites[1].dstBinding = 1;
     descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pImageInfo = &imageInfo;
+    descriptorWrites[1].pImageInfo = &imageInfo;    
 
     descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[2].dstSet = mesh.descriptorSet;
     descriptorWrites[2].dstBinding = 2;
     descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[2].descriptorCount = 1;
-    descriptorWrites[2].pBufferInfo = &fallbackInfo;
+    descriptorWrites[2].pBufferInfo = &materialInfo;
 
-    vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    std::vector<VkWriteDescriptorSet> writes = {
+        descriptorWrites[0],
+        descriptorWrites[2]
+    };
+    if (imageInfo.imageView != VK_NULL_HANDLE && imageInfo.sampler != VK_NULL_HANDLE)
+        writes.insert(writes.begin() + 1, descriptorWrites[1]);
+    
+    vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void VulkanRenderer::createVertexBuffer(const std::vector<Vertex>& vertices, VkBuffer& buffer, VkDeviceMemory& memory) {
@@ -892,7 +875,7 @@ void VulkanRenderer::handleInput() {
                     if (!mesh.textureFile.empty()) {
                         createTextureImage("models/" + mesh.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
                     } else {
-                        createFallbackWhiteTexture(mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
+                        return;
                     }
                 }
                 createDescriptorSet(mesh);
