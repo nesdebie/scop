@@ -79,45 +79,45 @@ static void parseFaceLine(std::istringstream& iss, const std::vector<glm::vec3>&
     }
 }
 
-static bool parseMTL(const std::string& mtlFilename, std::string& textureFile) {
-    std::ifstream mtlFile("models/" + mtlFilename);
-    if (!mtlFile.is_open() && ends_with(mtlFilename, ".mtl")) {
-        mtlFile.open("models/mtl/" + mtlFilename);
-    }
-    if (!mtlFile.is_open()) {
-        std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
-        return false;
-    }
+// static bool parseMTL(const std::string& mtlFilename, std::string& textureFile) {
+//     std::ifstream mtlFile("models/" + mtlFilename);
+//     if (!mtlFile.is_open() && ends_with(mtlFilename, ".mtl")) {
+//         mtlFile.open("models/mtl/" + mtlFilename);
+//     }
+//     if (!mtlFile.is_open()) {
+//         std::cerr << "Failed to open MTL file: " << mtlFilename << std::endl;
+//         return false;
+//     }
 
-    std::string mtlLine;
-    while (std::getline(mtlFile, mtlLine)) {
-        std::istringstream mtlIss(mtlLine);
-        std::string mtlPrefix;
-        mtlIss >> mtlPrefix;
+//     std::string mtlLine;
+//     while (std::getline(mtlFile, mtlLine)) {
+//         std::istringstream mtlIss(mtlLine);
+//         std::string mtlPrefix;
+//         mtlIss >> mtlPrefix;
 
-        if (mtlPrefix == "map_Kd") {
-            std::string texCandidate;
-            mtlIss >> texCandidate;
+//         if (mtlPrefix == "map_Kd") {
+//             std::string texCandidate;
+//             mtlIss >> texCandidate;
 
-            std::ifstream texFile("models/" + texCandidate);
-            if (texFile.good() && ends_with(texCandidate, ".png")) {
-                textureFile = texCandidate;
-                return true;
-            }
+//             std::ifstream texFile("models/" + texCandidate);
+//             if (texFile.good() && ends_with(texCandidate, ".png")) {
+//                 textureFile = texCandidate;
+//                 return true;
+//             }
 
-            texFile.open("models/tex/" + texCandidate);
-            if (texFile.good() && ends_with(texCandidate, ".png")) {
-                textureFile = "tex/" + texCandidate;
-                return true;
-            }
+//             texFile.open("models/tex/" + texCandidate);
+//             if (texFile.good() && ends_with(texCandidate, ".png")) {
+//                 textureFile = "tex/" + texCandidate;
+//                 return true;
+//             }
 
-            std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texCandidate << std::endl;
-        }
-    }
-    return true;
-}
+//             std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texCandidate << std::endl;
+//         }
+//     }
+//     return true;
+// }
 
-bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, std::string& textureFile) {
+bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
     if (!isValidOBJFilename(filename)) {
         std::cerr << "Filename is invalid." << std::endl;
         return false;
@@ -132,9 +132,12 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
     std::vector<glm::vec3> temp_positions;
     std::vector<glm::vec3> temp_normals;
     std::vector<glm::vec2> temp_texcoords;
+
     std::unordered_map<Vertex, uint32_t, VertexHash> uniqueVertices;
     std::string line, mtlFilename;
-    textureFile.clear();
+    std::map<std::string, std::string> materialTextures;
+    std::string currentMaterial;
+    SubMesh currentSubMesh;
 
     while (std::getline(file, line)) {
         std::istringstream iss(line);
@@ -144,11 +147,51 @@ bool loadOBJ(const std::string& filename, std::vector<Vertex>& vertices, std::ve
         if (prefix == "v") parseVertexLine(iss, temp_positions);
         else if (prefix == "vt") parseTexcoordLine(iss, temp_texcoords);
         else if (prefix == "vn") parseNormalLine(iss, temp_normals);
-        else if (prefix == "f") parseFaceLine(iss, temp_positions, temp_normals, temp_texcoords, vertices, indices, uniqueVertices);
         else if (prefix == "mtllib") {
             iss >> mtlFilename;
-            if (!parseMTL(mtlFilename, textureFile)) return false;
+            std::ifstream mtl("models/" + mtlFilename);
+            if (!mtl.is_open() && ends_with(mtlFilename, ".mtl"))
+                mtl.open("models/mtl/" + mtlFilename);
+            std::string mline, matName, texName;
+            while (std::getline(mtl, mline)) {
+                std::istringstream miss(mline);
+                std::string token;
+                miss >> token;
+                if (token == "newmtl") miss >> matName;
+                else if (token == "map_Kd") {
+                    miss >> texName;
+                    if (!texName.empty()) {
+                        std::ifstream texFile("models/" + texName);
+                        if (texFile.good()) {
+                            materialTextures[matName] = texName;
+                            continue;
+                        }
+                        texFile.open("models/tex/" + texName);
+                        if (texFile.good()) {
+                            materialTextures[matName] = "tex/" + texName;
+                            continue;
+                        }
+                        std::cerr << "Warning: Texture not found in models/ or models/tex/: " << texName << std::endl;
+                        
+                    }
+                }
+            }
+        } else if (prefix == "usemtl") {
+            if (!currentSubMesh.vertices.empty()) {
+                submeshes.push_back(currentSubMesh);
+                currentSubMesh = SubMesh();
+                uniqueVertices.clear();
+            }
+            iss >> currentMaterial;
+            currentSubMesh.textureFile = materialTextures[currentMaterial];
+        } else if (prefix == "f") {
+            parseFaceLine(iss, temp_positions, temp_normals, temp_texcoords,
+                          currentSubMesh.vertices, currentSubMesh.indices, uniqueVertices);
         }
+    }
+
+    if (!currentSubMesh.vertices.empty()) {
+        submeshes.push_back(currentSubMesh);
     }
 
     return true;
