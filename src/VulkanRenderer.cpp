@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/22 11:29:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/22 11:51:16 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ void vkCheck(VkResult result, const char* msg) {
 }
 
 VulkanRenderer::VulkanRenderer() {}
-
 
 VulkanRenderer::~VulkanRenderer() {}
 
@@ -1102,10 +1101,10 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkIma
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
 
+    barrier.srcAccessMask = 0;
+    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -1113,9 +1112,7 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format, VkIma
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-        barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     } else
         throw std::invalid_argument("Unsupported layout transition!");
@@ -1176,9 +1173,3 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t 
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
-
-
-
-
-
-
