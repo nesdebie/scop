@@ -67,9 +67,17 @@ class VulkanRenderer {
         };
 
         struct alignas(16) MaterialUBO {
-            glm::vec3 color;
+            glm::vec3 diffuse;
+            float specularExponent;
+            glm::vec3 ambient;
+            float dissolve;
+            glm::vec3 specular;
+            float refractionIndex;
+            glm::vec3 emissive;
+            int illumModel;
             int useTexture;
         };
+        
         
         std::vector<GpuMesh> gpuMeshes;
 

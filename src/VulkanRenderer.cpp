@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/23 13:36:46 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/27 09:21:47 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
             createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
     
         MaterialUBO mat{};
-        mat.color = pkg.textureFile.empty() ? pkg.diffuseColor : glm::vec3(0.0f); // any color, won't be used if textured
+        mat.diffuse = pkg.textureFile.empty() ? pkg.diffuseColor : glm::vec3(0.0f); // any color, won't be used if textured
         mat.useTexture = pkg.textureFile.empty() ? 0 : 1;
 
         createBuffer(sizeof(MaterialUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,

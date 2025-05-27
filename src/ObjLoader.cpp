@@ -97,6 +97,15 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
     std::unordered_map<Vertex, uint32_t, VertexHash> uniqueVertices;
     std::map<std::string, std::string> materialTextures;
     std::map<std::string, glm::vec3> materialColors;
+
+    std::map<std::string, glm::vec3> materialAmbient;
+    std::map<std::string, glm::vec3> materialSpecular;
+    std::map<std::string, glm::vec3> materialEmissive;
+    std::map<std::string, float> materialSpecularExp;
+    std::map<std::string, float> materialDissolve;
+    std::map<std::string, float> materialRefraction;
+    std::map<std::string, int> materialIllum;
+
     std::string line, mtlFilename;
     std::string currentMaterial;
     SubMesh currentSubMesh;
@@ -122,7 +131,7 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
                 miss >> token;
                 if (token == "newmtl") {
                     miss >> matName;
-                    kdColor = glm::vec3(1.0f); // default
+                    kdColor = glm::vec3(1.0f);
                 } else if (token == "map_Kd") {
                     miss >> texName;
                     if (!texName.empty()) {
@@ -142,8 +151,35 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
                     float r, g, b;
                     miss >> r >> g >> b;
                     kdColor = glm::vec3(r, g, b);
-                    std::cerr << "Material color: " << matName << " " << kdColor.x << " " << kdColor.y << " " << kdColor.z << std::endl;
                     materialColors[matName] = kdColor;
+                } else if (token == "Ka") {
+                    float r, g, b;
+                    miss >> r >> g >> b;
+                    materialAmbient[matName] = glm::vec3(r, g, b);
+                } else if (token == "Ks") {
+                    float r, g, b;
+                    miss >> r >> g >> b;
+                    materialSpecular[matName] = glm::vec3(r, g, b);
+                } else if (token == "Ke") {
+                    float r, g, b;
+                    miss >> r >> g >> b;
+                    materialEmissive[matName] = glm::vec3(r, g, b);
+                } else if (token == "Ns") {
+                    float ns;
+                    miss >> ns;
+                    materialSpecularExp[matName] = ns;
+                } else if (token == "d") {
+                    float d;
+                    miss >> d;
+                    materialDissolve[matName] = d;
+                } else if (token == "Ni") {
+                    float ni;
+                    miss >> ni;
+                    materialRefraction[matName] = ni;
+                } else if (token == "illum") {
+                    int illum;
+                    miss >> illum;
+                    materialIllum[matName] = illum;
                 }
             }
         } else if (prefix == "usemtl") {
@@ -155,6 +191,13 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
             iss >> currentMaterial;
             currentSubMesh.textureFile = materialTextures[currentMaterial];
             currentSubMesh.diffuseColor = materialColors.count(currentMaterial) ? materialColors[currentMaterial] : glm::vec3(1.0f);
+            currentSubMesh.ambientColor = materialAmbient.count(currentMaterial) ? materialAmbient[currentMaterial] : glm::vec3(1.0f);
+            currentSubMesh.specularColor = materialSpecular.count(currentMaterial) ? materialSpecular[currentMaterial] : glm::vec3(0.0f);
+            currentSubMesh.emissiveColor = materialEmissive.count(currentMaterial) ? materialEmissive[currentMaterial] : glm::vec3(0.0f);
+            currentSubMesh.specularExponent = materialSpecularExp.count(currentMaterial) ? materialSpecularExp[currentMaterial] : 1.0f;
+            currentSubMesh.dissolve = materialDissolve.count(currentMaterial) ? materialDissolve[currentMaterial] : 1.0f;
+            currentSubMesh.refractionIndex = materialRefraction.count(currentMaterial) ? materialRefraction[currentMaterial] : 1.0f;
+            currentSubMesh.illumModel = materialIllum.count(currentMaterial) ? materialIllum[currentMaterial] : 2;
         } else if (prefix == "f") {
             parseFaceLine(iss, temp_positions, temp_normals, temp_texcoords,
                           currentSubMesh.vertices, currentSubMesh.indices, uniqueVertices);
