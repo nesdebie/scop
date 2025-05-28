@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 09:49:25 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:20:32 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -888,15 +888,13 @@ void VulkanRenderer::handleInput() {
         lightIntensity -= 1.0f;
         lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
     }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        useDefaultTexture = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        useDefaultTexture = false;
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        //TODO
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        //TODO
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        //TODO
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        //TODO
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
 

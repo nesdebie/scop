@@ -48,7 +48,7 @@ class VulkanRenderer {
         bool textureOverrideActive = false;
         bool textureWasLoadedInitially = false;
         float lightIntensity = 1.0f;
-
+        bool useDefaultTexture = false;
 
     private:
         struct GpuMesh {

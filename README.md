@@ -23,5 +23,4 @@ make
 ```
 Vulkan Instance Version: 1.3.204
 GLFW3 version : 3.3.6
-
 ```
