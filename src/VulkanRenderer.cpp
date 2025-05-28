@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 12:19:58 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/28 14:52:54 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,9 +48,9 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createRenderPass();
     createGraphicsPipeline();
     lightPosition = glm::vec3(
-    cameraDistance * cos(cameraPitch) * sin(cameraYaw),
-    cameraDistance * sin(cameraPitch),
-    cameraDistance * cos(cameraPitch) * cos(cameraYaw)
+        cameraDistance * cos(cameraPitch) * sin(cameraYaw),
+        cameraDistance * sin(cameraPitch),
+        cameraDistance * cos(cameraPitch) * cos(cameraYaw)
     );
 
     createUniformBuffer();
@@ -61,7 +61,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         GpuMesh mesh;
         mesh.indexCount = pkg.indices.size();
         mesh.textureFile = pkg.textureFile;
-    
+
         createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
         createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
         if (!pkg.textureFile.empty())
@@ -79,8 +79,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         vkMapMemory(device, mesh.materialBufferMemory, 0, sizeof(MaterialUBO), 0, &data);
         memcpy(data, &mat, sizeof(MaterialUBO));
         vkUnmapMemory(device, mesh.materialBufferMemory);
-
-    
         gpuMeshes.push_back(mesh);
     }
     createDescriptorPool();
@@ -679,7 +677,6 @@ void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
     vkCheck(vkAllocateDescriptorSets(device, &allocInfo, &mesh.descriptorSet), "Failed to allocate descriptor set");
 
     VkDescriptorBufferInfo uboInfo = { uniformBuffer, 0, sizeof(UniformBufferObject) };
-    //VkDescriptorBufferInfo fallbackInfo = { fallbackUniformBuffer, 0, sizeof(int) };
 
     VkDescriptorImageInfo imageInfo{};
     if (!mesh.textureFile.empty()) {
@@ -885,11 +882,11 @@ void VulkanRenderer::handleInput() {
         cameraDistance = objectRadius * 2.2f;
     }
     if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
-        lightIntensity += 1.0f;
+        lightIntensity += 0.1f;
         lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
     }
     if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
-        lightIntensity -= 1.0f;
+        lightIntensity -= 0.1f;
         lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
     }
     float lightSpeed = 0.001f;
@@ -947,7 +944,7 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.view = glm::lookAt(cameraPos, objectCenter, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, WINDOW_DEPTH);
     ubo.proj[1][1] *= -1;
-    ubo.lightPos = lightPosition;
+    ubo.lightPos = this->lightPosition;
 
 
     void* data;
