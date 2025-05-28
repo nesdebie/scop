@@ -11,6 +11,7 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 view;
     mat4 proj;
     vec3 cameraPos;
+    float lightIntensity;
 } ubo;
 
 layout(binding = 1) uniform sampler2D texSampler;
@@ -33,19 +34,20 @@ void main() {
         : material.diffuse;
 
     vec3 normal = normalize(fragNormal);
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
+
     vec3 viewDir = normalize(ubo.cameraPos - fragWorldPos);
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
     vec3 reflectDir = reflect(-lightDir, normal);
 
-    float diffFactor = max(dot(normal, lightDir), 0.0);
-    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.specularExponent);
+    float diffFactor = max(dot(normal, lightDir), 0.0); // 1
+    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.specularExponent); // 0
 
     vec3 ambient = material.ambient;
     vec3 diffuse = diffFactor * baseColor;
     vec3 specular = specFactor * material.specular;
     vec3 emissive = material.emissive;
 
-    vec3 finalColor = ambient + diffuse + specular + emissive;
+    vec3 finalColor = (ambient + diffuse + specular + emissive) * ubo.lightIntensity;
     finalColor = clamp(finalColor, 0.0, 1.0);
 
     outColor = vec4(finalColor, material.dissolve);

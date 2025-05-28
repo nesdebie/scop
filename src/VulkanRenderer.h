@@ -45,9 +45,10 @@ class VulkanRenderer {
         glm::vec3 objectCenter = glm::vec3(0.0f);
         float objectRadius = 1.0f;
         float cameraDistance = 2.0f;
-        bool textureManuallyApplied = false;
         bool textureOverrideActive = false;
         bool textureWasLoadedInitially = false;
+        float lightIntensity = 1.0f;
+
 
     private:
         struct GpuMesh {
