@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 10:20:32 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/28 12:19:58 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,12 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
+    lightPosition = glm::vec3(
+    cameraDistance * cos(cameraPitch) * sin(cameraYaw),
+    cameraDistance * sin(cameraPitch),
+    cameraDistance * cos(cameraPitch) * cos(cameraYaw)
+    );
+
     createUniformBuffer();
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
@@ -847,8 +853,6 @@ void VulkanRenderer::createCommandBuffers() {
     }
 }
 
-
-
 /* MAIN LOOP */
 void VulkanRenderer::run() {
     mainLoop();
@@ -862,7 +866,7 @@ void VulkanRenderer::mainLoop() {
     }
     vkDeviceWaitIdle(device);
 }
-
+#include <iostream>
 void VulkanRenderer::handleInput() {    
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= ROTATION_SPEED;
@@ -880,20 +884,23 @@ void VulkanRenderer::handleInput() {
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
     }
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
         lightIntensity += 1.0f;
         lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
     }
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
         lightIntensity -= 1.0f;
         lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
     }
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        useDefaultTexture = true;
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        useDefaultTexture = false;
-    }
+    float lightSpeed = 0.001f;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        lightPosition += glm::vec3(0.0f, lightSpeed, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        lightPosition -= glm::vec3(0.0f, lightSpeed, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        lightPosition -= glm::normalize(glm::cross(glm::vec3(0, 1, 0), lightPosition)) * lightSpeed;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        lightPosition += glm::normalize(glm::cross(glm::vec3(0, 1, 0), lightPosition)) * lightSpeed;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
@@ -930,6 +937,7 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.model = glm::translate(glm::mat4(1.0f), modelOffset);
     ubo.lightIntensity = lightIntensity;
 
+
     glm::vec3 cameraPos = glm::vec3(
         cameraDistance * cos(cameraPitch) * sin(cameraYaw),
         cameraDistance * sin(cameraPitch),
@@ -939,6 +947,8 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.view = glm::lookAt(cameraPos, objectCenter, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, WINDOW_DEPTH);
     ubo.proj[1][1] *= -1;
+    ubo.lightPos = lightPosition;
+
 
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);

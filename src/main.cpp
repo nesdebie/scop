@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 09:50:23 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/28 11:50:22 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,10 +54,11 @@ int main(int ac, char** av) {
         return -1;
     }
     std::cout << "--- CONTROLS ---" << std::endl;
-    std::cout << "Camera: [w][a][s][d]" << std::endl;
-    std::cout << "Object: [left click + move mouse] [left click + mouse scroll]" << std::endl;
-    std::cout << "Ligth intensity: [up][down]" << std::endl;
-    std::cout << "Zoom: [mouse scroll]" << std::endl;
+    std::cout << "Camera: [w] [a] [s] [d]" << std::endl;
+    std::cout << "Camera Zoom: [scroll up] [scroll down]" << std::endl;
+    std::cout << "Move Object: [left click] [left click + scroll]" << std::endl;
+    std::cout << "Rotate Object: [up] [down] [left] [right]" << std::endl;
+    std::cout << "Light intensity: [+] [-]" << std::endl;
     std::cout << "Focus: [f]" << std::endl;
     std::cout << "Exit: [esc] [q]" << std::endl;
     renderer.run();

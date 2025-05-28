@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 10:20:26 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/28 11:55:06 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ struct UniformBufferObject {
     glm::mat4 view;
     glm::mat4 proj;
     glm::vec3 cameraPos;
+    glm::vec3 lightPos;
+    float _pad;
     float lightIntensity;
 };
 

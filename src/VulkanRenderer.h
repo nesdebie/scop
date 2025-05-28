@@ -133,6 +133,7 @@ class VulkanRenderer {
         glm::vec3 modelOffset = glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;
+        glm::vec3 lightPosition;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
