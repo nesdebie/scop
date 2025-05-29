@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 13:21:25 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/29 13:34:55 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,13 +53,14 @@ int main(int ac, char** av) {
         std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;
         return -1;
     }
-    std::cout << "--- CONTROLS ---" << std::endl;
-    std::cout << "Camera: [w] [a] [s] [d]" << std::endl;
-    std::cout << "Camera Zoom: [scroll up] [scroll down]" << std::endl;
-    std::cout << "Move Object: [left click] [left click + scroll]" << std::endl;
-    std::cout << "Rotate Light Source: [up] [down] [left] [right]" << std::endl;
-    std::cout << "Light intensity: [+] [-]" << std::endl;
-    std::cout << "Focus: [f]" << std::endl;
+    std::cout << "________CONTROLS________" << std::endl;
+    std::cout << "Camera Controls:" << std::endl;
+    std::cout << "Rotate: [w] [a] [s] [d]" << std::endl;
+    std::cout << "Zoom: [scroll up] [scroll down]" << std::endl;
+    std::cout << "Reset camera: [r]" << std::endl;
+    std::cout << "Object Controls:" << std::endl;
+    std::cout << "Move: [left click + scroll] [left click + move mouse]" << std::endl;
+    std::cout << "Rotate: [up] [down] [left] [right]" << std::endl;
     std::cout << "Exit: [esc] [q]" << std::endl;
     renderer.run();
     renderer.cleanup();

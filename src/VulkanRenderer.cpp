@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/28 14:52:54 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/29 13:40:00 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,8 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
-    lightPosition = glm::vec3(
-        cameraDistance * cos(cameraPitch) * sin(cameraYaw),
-        cameraDistance * sin(cameraPitch),
-        cameraDistance * cos(cameraPitch) * cos(cameraYaw)
-    );
+    lightPosition = glm::vec3(1.0f, 1.0f, 1.0f);
+    //lightPosition = objectCenter + glm::vec3(0.0f, objectRadius, objectRadius);
 
     createUniformBuffer();
     createFallbackUniformBuffer();
@@ -863,41 +860,34 @@ void VulkanRenderer::mainLoop() {
     }
     vkDeviceWaitIdle(device);
 }
-#include <iostream>
+
 void VulkanRenderer::handleInput() {    
+    float adjustedRotation = ROTATION_SPEED * objectRadius;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraYaw -= ROTATION_SPEED;
+        cameraYaw -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraYaw += ROTATION_SPEED;
+        cameraYaw += adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPitch += ROTATION_SPEED;
+        cameraPitch += adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPitch -= ROTATION_SPEED;
+        cameraPitch -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         modelOffset = glm::vec3(0.0f);
         cameraYaw = 0.0f;
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
     }
-    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS) {
-        lightIntensity += 0.1f;
-        lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
-    }
-    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS) {
-        lightIntensity -= 0.1f;
-        lightIntensity = glm::clamp(lightIntensity, 1.0f, 10.0f);
-    }
-    float lightSpeed = 0.001f;
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        lightPosition += glm::vec3(0.0f, lightSpeed, 0.0f);
+        modelRotation.x -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        lightPosition -= glm::vec3(0.0f, lightSpeed, 0.0f);
+        modelRotation.x += adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        lightPosition -= glm::normalize(glm::cross(glm::vec3(0, 1, 0), lightPosition)) * lightSpeed;
+        modelRotation.y -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        lightPosition += glm::normalize(glm::cross(glm::vec3(0, 1, 0), lightPosition)) * lightSpeed;
+        modelRotation.y += adjustedRotation;
+
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
@@ -932,7 +922,11 @@ void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
     ubo.model = glm::translate(glm::mat4(1.0f), modelOffset);
-    ubo.lightIntensity = lightIntensity;
+    ubo.model = glm::rotate(ubo.model, modelRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    ubo.lightIntensity = 1.0f;
 
 
     glm::vec3 cameraPos = glm::vec3(
@@ -946,13 +940,11 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.proj[1][1] *= -1;
     ubo.lightPos = this->lightPosition;
 
-
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));
     vkUnmapMemory(device, uniformBufferMemory);
 }
-
 
 
 /* GRAPHICS PIPELINE UTILS */
