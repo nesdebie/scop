@@ -42,7 +42,7 @@ void main() {
         : material.diffuse;
 
     // toggle unlit
-    if (ubo.isLightOff == 1) {
+    if (ubo.isLightOff == -1) {
         outColor = vec4(baseColor, material.dissolve);
         return;
     }

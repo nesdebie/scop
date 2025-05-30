@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 11:22:06 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 12:58:25 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,45 @@
 #include "VulkanRenderer.h"
 #include <iostream>
 
-int main(int ac, char** av) {
-    if (ac != 2) {
-        std::cerr << "Usage: " << av[0] << " models/<name>.obj" << std::endl;
-        return -1;
+static int giveGoodUsage(char *str){
+    std::cerr << "Usage: " << str << " models/<name>.obj" << std::endl;
+    return -1;  
+}
+
+static int failure(int value) {
+    switch(value) {
+        case 1:
+            std::cerr << "Error: Invalid OBJ file." << std::endl;
+            break;
+        case 2:
+            std::cerr << "Error: Failed to initialize Vulkan Renderer." << std::endl;
+            break;
     }
+    return -1;
+}
+
+static void showControls(){
+    std::cout << "________CONTROLS________" << std::endl;
+    std::cout << "Camera Controls:" << std::endl;
+    std::cout << "Rotate: [w] [a] [s] [d]" << std::endl;
+    std::cout << "Zoom: [scroll up] [scroll down]" << std::endl;
+    std::cout << "Reset camera: [r]" << std::endl;
+    std::cout << "Object Controls:" << std::endl;
+    std::cout << "Move: [left click + scroll] [left click + move mouse]" << std::endl;
+    std::cout << "Rotate: [up] [down] [left] [right]" << std::endl;
+    std::cout << "Other Controls:" << std::endl;
+    std::cout << "Enable/Disable lights: [l]" << std::endl;
+    std::cout << "Exit: [esc] [q]" << std::endl;
+}
+
+int main(int ac, char** av) {
+    if (ac != 2)
+        return giveGoodUsage(av[0]);
 
     const char* objPath = av[1];
     std::vector<SubMesh> submeshes;
-    if (!loadOBJ(objPath, submeshes)) {
-        std::cerr << "Failed to load OBJ file." << std::endl;
-        return -1;
-    }
+    if (!loadOBJ(objPath, submeshes))
+        return failure(1);
 
     glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
     for (const auto& sub : submeshes) {
@@ -49,21 +76,10 @@ int main(int ac, char** av) {
         meshPackages.push_back({sub.vertices, sub.indices, sub.textureFile, sub.diffuseColor});
     }
 
-    if (!renderer.init(meshPackages)) {
-        std::cerr << "Failed to initialize Vulkan Renderer." << std::endl;
-        return -1;
-    }
-    std::cout << "________CONTROLS________" << std::endl;
-    std::cout << "Camera Controls:" << std::endl;
-    std::cout << "Rotate: [w] [a] [s] [d]" << std::endl;
-    std::cout << "Zoom: [scroll up] [scroll down]" << std::endl;
-    std::cout << "Reset camera: [r]" << std::endl;
-    std::cout << "Object Controls:" << std::endl;
-    std::cout << "Move: [left click + scroll] [left click + move mouse]" << std::endl;
-    std::cout << "Rotate: [up] [down] [left] [right]" << std::endl;
-    std::cout << "Other Controls:" << std::endl;
-    std::cout << "Enable/Disable lights: [l]" << std::endl;
-    std::cout << "Exit: [esc] [q]" << std::endl;
+    if (!renderer.init(meshPackages)) 
+        return failure(2);
+
+    showControls();
     renderer.run();
     renderer.cleanup();
     return 0;
