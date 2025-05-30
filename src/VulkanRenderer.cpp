@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 09:42:17 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 10:01:34 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createRenderPass();
     createGraphicsPipeline();
     lightPosition = objectCenter + glm::vec3(objectRadius + 1.0f);
-
+    lightPosition2 = objectCenter + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
     createUniformBuffer();
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
@@ -132,15 +132,6 @@ void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int act
 void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
     auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
     if (!renderer || !renderer->leftMousePressed) return;
-
-    // double dx = xpos - renderer->lastMouseX;
-    // double dy = ypos - renderer->lastMouseY;
-    // renderer->lastMouseX = xpos;
-    // renderer->lastMouseY = ypos;
-
-    // float sensitivity = 0.005f;
-    // renderer->modelOffset.x += dx * sensitivity;
-    // renderer->modelOffset.y -= dy * sensitivity;
 
     double dx = xpos - renderer->lastMouseX;
     double dy = ypos - renderer->lastMouseY;
@@ -414,8 +405,8 @@ void VulkanRenderer::createRenderPass() {
 }
 
 void VulkanRenderer::createGraphicsPipeline() {
-    auto vertShaderCode = readFile("shaders/triangle.vert.spv");
-    auto fragShaderCode = readFile("shaders/triangle.frag.spv");
+    auto vertShaderCode = readFile("shaders/scop.vert.spv");
+    auto fragShaderCode = readFile("shaders/scop.frag.spv");
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -925,7 +916,8 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    ubo.lightIntensity = 1.0f;
+    ubo.lightIntensity = 5.0f;
+    ubo.lightIntensity2 = 5.0f;
 
 
     glm::vec3 cameraPos = glm::vec3(
@@ -938,6 +930,7 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, WINDOW_DEPTH);
     ubo.proj[1][1] *= -1;
     ubo.lightPos = this->lightPosition;
+    ubo.lightPos2 = this->lightPosition2;
 
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);

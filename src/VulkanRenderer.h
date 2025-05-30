@@ -132,6 +132,7 @@ class VulkanRenderer {
         size_t indexCount = 0;
         std::string textureFile;
         glm::vec3 lightPosition;
+        glm::vec3 lightPosition2;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;

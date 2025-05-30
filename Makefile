@@ -6,7 +6,7 @@
 #    By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 10:40:22 by nesdebie          #+#    #+#              #
-#    Updated: 2025/05/22 11:02:51 by nesdebie         ###   ########.fr        #
+#    Updated: 2025/05/30 10:01:45 by nesdebie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,10 +32,10 @@ INCLUDES = -I$(SRC_DIR) -I$(GLM_DIR) -I$(EXT_DIR)
 SRCS = $(wildcard $(SRC_DIR)/*.cpp)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-VERT_SHADER = $(SHADER_DIR)/triangle.vert.glsl
-FRAG_SHADER = $(SHADER_DIR)/triangle.frag.glsl
-SPV_VERT = $(SHADER_DIR)/triangle.vert.spv
-SPV_FRAG = $(SHADER_DIR)/triangle.frag.spv
+VERT_SHADER = $(SHADER_DIR)/scop.vert.glsl
+FRAG_SHADER = $(SHADER_DIR)/scop.frag.glsl
+SPV_VERT = $(SHADER_DIR)/scop.vert.spv
+SPV_FRAG = $(SHADER_DIR)/scop.frag.spv
 
 all: $(GLM_DIR) $(STB_HEADER) shaderc-install shaders $(BUILD_DIR) $(NAME)
 
