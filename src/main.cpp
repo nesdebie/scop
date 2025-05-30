@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/29 13:34:55 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 11:22:06 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,8 @@ int main(int ac, char** av) {
     std::cout << "Object Controls:" << std::endl;
     std::cout << "Move: [left click + scroll] [left click + move mouse]" << std::endl;
     std::cout << "Rotate: [up] [down] [left] [right]" << std::endl;
+    std::cout << "Other Controls:" << std::endl;
+    std::cout << "Enable/Disable lights: [l]" << std::endl;
     std::cout << "Exit: [esc] [q]" << std::endl;
     renderer.run();
     renderer.cleanup();

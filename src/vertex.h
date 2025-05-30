@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 09:50:16 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 11:19:48 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ struct UniformBufferObject {
     float lightIntensity;
     glm::vec3 lightPos2;
     float lightIntensity2;
+    bool isLightOff;
 };
 
 

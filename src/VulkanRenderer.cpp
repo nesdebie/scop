@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 10:01:34 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 11:22:36 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
-    lightPosition = objectCenter + glm::vec3(objectRadius + 1.0f);
-    lightPosition2 = objectCenter + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
+    lightPosition = objectCenter + glm::vec3(objectRadius / 2.0f);
+    lightPosition2 = objectCenter;// * 2.0f + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
     createUniformBuffer();
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
@@ -877,7 +877,10 @@ void VulkanRenderer::handleInput() {
         modelRotation.y -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         modelRotation.y += adjustedRotation;
-
+    int lState = glfwGetKey(window, GLFW_KEY_L);
+    if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
+        isLightOff = !isLightOff;
+    prevLState = lState;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
 }
@@ -916,8 +919,8 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    ubo.lightIntensity = 5.0f;
-    ubo.lightIntensity2 = 5.0f;
+    ubo.lightIntensity = 1.0f;
+    ubo.lightIntensity2 = 1.0f;
 
 
     glm::vec3 cameraPos = glm::vec3(
@@ -931,7 +934,7 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.proj[1][1] *= -1;
     ubo.lightPos = this->lightPosition;
     ubo.lightPos2 = this->lightPosition2;
-
+    ubo.isLightOff = this->isLightOff;
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));

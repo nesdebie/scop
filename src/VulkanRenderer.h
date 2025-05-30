@@ -128,6 +128,8 @@ class VulkanRenderer {
         float cameraPitch = 0.0f;
         double lastMouseX = 0.0, lastMouseY = 0.0;
         bool leftMousePressed = false;
+        bool isLightOff = false;
+        int prevLState = GLFW_RELEASE;
         glm::vec3 modelOffset = glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;
