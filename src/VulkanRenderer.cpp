@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 12:35:54 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 14:23:24 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -879,7 +879,7 @@ void VulkanRenderer::handleInput() {
         modelRotation.y += adjustedRotation;
     int lState = glfwGetKey(window, GLFW_KEY_L);
     if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
-        isLightOff *= -1; // toggle light state
+        isLightOff = 1 - isLightOff; // toggle light state
     prevLState = lState;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
@@ -935,7 +935,9 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.proj[1][1] *= -1;
     ubo.cameraPos = cameraPos;
     ubo._pad0     = 0.0f;  // our padding slot
-
+    ubo.objectCenter = objectCenter;
+    // e.g. a 45° half-angle → cos(45°)=0.707
+    ubo.spotCosCutoff= cos(glm::radians(45.0f));
     // ——— Lights ———
     int idx = 0;
     for (int xi = 0; xi < 2; ++xi) {

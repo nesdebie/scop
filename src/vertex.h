@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 12:04:02 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 14:22:00 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,25 +17,28 @@
 # include <vulkan/vulkan.h>
 # include <array>
 
-
 #define MAX_LIGHTS 8
 
 struct alignas(16) UniformBufferObject {
-    glm::mat4 model;          // 64
-    glm::mat4 view;           // 64
-    glm::mat4 proj;           // 64
+    glm::mat4 model;                       // offset 0
+    glm::mat4 view;                        // offset 64
+    glm::mat4 proj;                        // offset 128
 
-    glm::vec3 cameraPos;      // 12
-    float     _pad0;          //  4
+    glm::vec3 cameraPos;                   // offset 192 (12 bytes)
+    float     _pad0;                       // offset 204 (4 bytes)
 
-    // std140 arrays must be spaced as vec4s:
-    glm::vec4 lightPositions[MAX_LIGHTS];   // 8 × 16 = 128 bytes
-    glm::vec4 lightIntensities[MAX_LIGHTS]; // 8 × 16 = 128 bytes
+    glm::vec3 objectCenter;                // offset 208 (12 bytes)
+    float     spotCosCutoff;               // offset 220 (4 bytes)
 
-    int       numLights;      // 4
-    int       isLightOff;     // 4
-    int       _pad1[2];       // 8 to round up to 16
+    // std140 requires array-stride of 16 bytes:
+    glm::vec4 lightPositions[MAX_LIGHTS];  // offset 224 (8×16 = 128 bytes)
+    glm::vec4 lightIntensities[MAX_LIGHTS];// offset 352 (8×16 = 128 bytes)
+
+    int       numLights;                   // offset 480 (4 bytes)
+    int       isLightOff;                  // offset 484 (4 bytes)
+    int       _pad1[2];                    // offset 488, 492 (8 bytes)
 };
+
 
 
 

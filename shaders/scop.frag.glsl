@@ -8,6 +8,9 @@ layout(set = 0, binding = 0) uniform UBO {
     vec3 cameraPos;
     float _pad0;
 
+    vec3 objectCenter;
+    float spotCosCutoff;
+
     vec4 lightPositions[8];
     vec4 lightIntensities[8];
 
@@ -18,7 +21,6 @@ layout(set = 0, binding = 0) uniform UBO {
 } ubo;
 
 layout(binding = 1) uniform sampler2D texSampler;
-
 layout(binding = 2) uniform Material {
     vec3 diffuse;
     float specularExponent;
@@ -41,8 +43,8 @@ void main() {
         ? texture(texSampler, fragTexCoord).rgb
         : material.diffuse;
 
-    // toggle unlit
-    if (ubo.isLightOff == -1) {
+    // **use isLightOff == 1** to skip lighting
+    if (ubo.isLightOff == 1) {
         outColor = vec4(baseColor, material.dissolve);
         return;
     }
@@ -50,26 +52,33 @@ void main() {
     vec3 N = normalize(fragNormal);
     vec3 V = normalize(ubo.cameraPos - fragWorldPos);
 
-    // start with ambient + emissive
+    // ambient + emissive
     vec3 color = material.ambient + material.emissive;
 
+    // loop over spot-lights
     float blurFactor = 0.01;
-    // loop over all lights
     for (int i = 0; i < ubo.numLights; ++i) {
         vec3 Lpos = ubo.lightPositions[i].xyz;
-        float I  = ubo.lightIntensities[i].x;
+        float I   = ubo.lightIntensities[i].x;
+
+        // aim cone toward objectCenter
+        vec3 spotAxis = normalize(ubo.objectCenter - Lpos);
+        vec3 fragDir  = normalize(fragWorldPos - Lpos);
+        float cosA    = dot(spotAxis, fragDir);
+        if (cosA < ubo.spotCosCutoff) continue;
 
         vec3 L    = normalize(Lpos - fragWorldPos);
         float d   = length(Lpos - fragWorldPos);
-        float att = 1.0 / (d + 0.032 * d*d);
+        float att = 1.0 / (d + 0.032 * d * d);
 
         float diff = max(dot(N, L), 0.0);
         vec3  R    = reflect(-L, N);
         float spec = pow(max(dot(V, R), 0.0),
-                         material.specularExponent * (1 - blurFactor));
+                         material.specularExponent * (1.0 - blurFactor));
 
+        float edge = smoothstep(ubo.spotCosCutoff, 1.0, cosA);
         color += (diff * baseColor + spec * material.specular)
-               * att * I;
+               * att * I * edge;
     }
 
     color = clamp(color, 0.0, 1.0);
