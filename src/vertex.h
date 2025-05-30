@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 11:19:48 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 12:04:02 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,18 +18,25 @@
 # include <array>
 
 
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-    glm::vec3 cameraPos;
-    float _pad;
-    glm::vec3 lightPos;
-    float lightIntensity;
-    glm::vec3 lightPos2;
-    float lightIntensity2;
-    bool isLightOff;
+#define MAX_LIGHTS 8
+
+struct alignas(16) UniformBufferObject {
+    glm::mat4 model;          // 64
+    glm::mat4 view;           // 64
+    glm::mat4 proj;           // 64
+
+    glm::vec3 cameraPos;      // 12
+    float     _pad0;          //  4
+
+    // std140 arrays must be spaced as vec4s:
+    glm::vec4 lightPositions[MAX_LIGHTS];   // 8 × 16 = 128 bytes
+    glm::vec4 lightIntensities[MAX_LIGHTS]; // 8 × 16 = 128 bytes
+
+    int       numLights;      // 4
+    int       isLightOff;     // 4
+    int       _pad1[2];       // 8 to round up to 16
 };
+
 
 
 struct Vertex {

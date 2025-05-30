@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 11:22:36 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 12:14:53 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
-    lightPosition = objectCenter + glm::vec3(objectRadius / 2.0f);
-    lightPosition2 = objectCenter;// * 2.0f + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
+    //lightPosition = objectCenter + glm::vec3(objectRadius / 2.0f);
+    //lightPosition2 = objectCenter;// * 2.0f + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
     createUniformBuffer();
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
@@ -879,7 +879,7 @@ void VulkanRenderer::handleInput() {
         modelRotation.y += adjustedRotation;
     int lState = glfwGetKey(window, GLFW_KEY_L);
     if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
-        isLightOff = !isLightOff;
+        isLightOff *= -1; // toggle light state
     prevLState = lState;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
@@ -914,32 +914,57 @@ void VulkanRenderer::drawFrame() {
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
+    // ——— Transforms ———
     ubo.model = glm::translate(glm::mat4(1.0f), modelOffset);
-    ubo.model = glm::rotate(ubo.model, modelRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(ubo.model, modelRotation.x, glm::vec3(1,0,0));
+    ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0,1,0));
+    ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0,0,1));
 
-    ubo.lightIntensity = 1.0f;
-    ubo.lightIntensity2 = 1.0f;
-
-
-    glm::vec3 cameraPos = glm::vec3(
+    // ——— Camera ———
+    glm::vec3 cameraPos = {
         cameraDistance * cos(cameraPitch) * sin(cameraYaw),
         cameraDistance * sin(cameraPitch),
         cameraDistance * cos(cameraPitch) * cos(cameraYaw)
-    );
-
-    ubo.view = glm::lookAt(cameraPos, objectCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, WINDOW_DEPTH);
+    };
+    ubo.view      = glm::lookAt(cameraPos, objectCenter, {0,1,0});
+    ubo.proj      = glm::perspective(
+                       glm::radians(45.0f),
+                       float(swapChainExtent.width) / swapChainExtent.height,
+                       0.1f, WINDOW_DEPTH
+                   );
     ubo.proj[1][1] *= -1;
-    ubo.lightPos = this->lightPosition;
-    ubo.lightPos2 = this->lightPosition2;
+    ubo.cameraPos = cameraPos;
+    ubo._pad0     = 0.0f;  // our padding slot
+
+    // ——— Lights ———
+    int idx = 0;
+    for (int xi = 0; xi < 2; ++xi) {
+      for (int yi = 0; yi < 2; ++yi) {
+        for (int zi = 0; zi < 2; ++zi) {
+          glm::vec3 offset = {
+            xi * objectRadius,
+            yi * objectRadius,
+            zi * objectRadius
+          };
+          // assign a vec4: (pos.xyz, 1.0)
+          ubo.lightPositions[idx]   = glm::vec4(objectCenter + offset, 1.0f);
+          // assign a vec4 where x is the intensity, others zero
+          ubo.lightIntensities[idx] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+          ++idx;
+        }
+      }
+    }
+    ubo.numLights  = idx;              // should be 8
     ubo.isLightOff = this->isLightOff;
+    ubo._pad1[0]   = ubo._pad1[1] = 0;  // clear padding
+
+    // ——— Upload ———
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
     memcpy(data, &ubo, sizeof(ubo));
     vkUnmapMemory(device, uniformBufferMemory);
 }
+
 
 
 /* GRAPHICS PIPELINE UTILS */
@@ -976,7 +1001,7 @@ void VulkanRenderer::createDescriptorSetLayout() {
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     uboLayoutBinding.pImmutableSamplers = nullptr;
     
     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
