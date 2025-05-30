@@ -15,8 +15,8 @@
 
 #include "vertex.h"
 
-#define WINDOW_WIDTH 2400
-#define WINDOW_HEIGHT 1800
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
 #define WINDOW_DEPTH 42.0f
 #define ROTATION_SPEED 0.001f
 
@@ -128,13 +128,11 @@ class VulkanRenderer {
         float cameraPitch = 0.0f;
         double lastMouseX = 0.0, lastMouseY = 0.0;
         bool leftMousePressed = false;
-        int isLightOff = 1;
+        int isLightOff = 0;
         int prevLState = GLFW_RELEASE;
         glm::vec3 modelOffset = glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;
-        //glm::vec3 lightPosition;
-        //glm::vec3 lightPosition2;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
