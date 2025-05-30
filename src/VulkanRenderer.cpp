@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/29 13:40:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/05/30 09:42:17 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void VulkanRenderer::cleanup() {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
-
+#include <iostream>
 bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     initWindow();
     createInstance();
@@ -47,8 +47,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
-    lightPosition = glm::vec3(1.0f, 1.0f, 1.0f);
-    //lightPosition = objectCenter + glm::vec3(0.0f, objectRadius, objectRadius);
+    lightPosition = objectCenter + glm::vec3(objectRadius + 1.0f);
 
     createUniformBuffer();
     createFallbackUniformBuffer();

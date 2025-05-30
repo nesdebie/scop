@@ -49,7 +49,8 @@ void main() {
 
     // Soften specular for bigger light sources (reduce exponent sharpness)
     float diffFactor = max(dot(normal, lightDir), 0.0);
-    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.specularExponent * 0.5);
+    float blurFactor = 0.9;
+    float specFactor = pow(max(dot(viewDir, reflectDir), 0.0), material.specularExponent * (1 - blurFactor));
 
     vec3 ambient = material.ambient;
     vec3 diffuse = diffFactor * baseColor * attenuation;
@@ -60,6 +61,5 @@ void main() {
     finalColor = clamp(finalColor, 0.0, 1.0);
 
     outColor = vec4(finalColor, material.dissolve);
-    //outColor = vec4(abs(normal), 1.0);
 
 }
