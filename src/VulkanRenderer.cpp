@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 14:23:24 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/05 11:50:01 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void VulkanRenderer::cleanup() {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
-#include <iostream>
+
 bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     initWindow();
     createInstance();
@@ -47,8 +47,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createDepthResources();
     createRenderPass();
     createGraphicsPipeline();
-    //lightPosition = objectCenter + glm::vec3(objectRadius / 2.0f);
-    //lightPosition2 = objectCenter;// * 2.0f + glm::vec3(objectRadius + 1.0f, objectRadius + 1.0f, -objectRadius);
     createUniformBuffer();
     createFallbackUniformBuffer();
     createDescriptorSetLayout();
@@ -910,7 +908,7 @@ void VulkanRenderer::drawFrame() {
 
     vkQueueWaitIdle(presentQueue);
 }
-
+#include <iostream>
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
@@ -934,27 +932,32 @@ void VulkanRenderer::updateUniformBuffer() {
                    );
     ubo.proj[1][1] *= -1;
     ubo.cameraPos = cameraPos;
-    ubo._pad0     = 0.0f;  // our padding slot
+    ubo.radius     = objectRadius;  // our padding slot
     ubo.objectCenter = objectCenter;
     // e.g. a 45° half-angle → cos(45°)=0.707
-    ubo.spotCosCutoff= cos(glm::radians(45.0f));
+    ubo.spotCosCutoff= cos(glm::radians(90.0f));
     // ——— Lights ———
     int idx = 0;
-    for (int xi = 0; xi < 2; ++xi) {
-      for (int yi = 0; yi < 2; ++yi) {
-        for (int zi = 0; zi < 2; ++zi) {
-          glm::vec3 offset = {
-            xi * objectRadius,
-            yi * objectRadius,
-            zi * objectRadius
-          };
-          // assign a vec4: (pos.xyz, 1.0)
-          ubo.lightPositions[idx]   = glm::vec4(objectCenter + offset, 1.0f);
-          // assign a vec4 where x is the intensity, others zero
-          ubo.lightIntensities[idx] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-          ++idx;
+    //std::cout <<"Center "<< objectCenter.x << ", " << objectCenter.y << ", " << objectCenter.z << std::endl;
+    for (int xi = -1; xi <= 1; xi += 2) {
+        for (int yi = -1; yi <= 1; yi += 2) {
+            for (int zi = -1; zi <= 1; zi += 2) {
+                // direction = (xi, yi, zi) normalized:
+                glm::vec3 dir = glm::normalize(glm::vec3(float(xi), float(yi), float(zi)));
+                // actual world‐space position = objectCenter + R * dir
+                glm::vec3 worldPos = objectCenter + objectRadius * dir;
+
+                // write it into the UBO as a vec4
+                ubo.lightPositions[idx] = glm::vec4(worldPos, 1.0f);
+
+                // store intensity in .x, leave .yzw = 0
+                ubo.lightIntensities[idx] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+                // if (idx == 0 || idx == 7)
+                //     std::cout << "Light " << idx << ": " << worldPos.x << ", " << worldPos.y << ", " << worldPos.z << " Direction: "
+                //               << dir.x << ", " << dir.y << ", " << dir.z << std::endl;
+                ++idx;
+            }
         }
-      }
     }
     ubo.numLights  = idx;              // should be 8
     ubo.isLightOff = this->isLightOff;

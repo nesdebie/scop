@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/05/30 14:22:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/03 09:43:37 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ struct alignas(16) UniformBufferObject {
     glm::mat4 proj;                        // offset 128
 
     glm::vec3 cameraPos;                   // offset 192 (12 bytes)
-    float     _pad0;                       // offset 204 (4 bytes)
+    float     radius;                       // offset 204 (4 bytes)
 
     glm::vec3 objectCenter;                // offset 208 (12 bytes)
     float     spotCosCutoff;               // offset 220 (4 bytes)

@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) uniform UBO {
     mat4 proj;
 
     vec3 cameraPos;
-    float _pad0;
+    float radius;
 
     vec3 objectCenter;
     float spotCosCutoff;
@@ -44,7 +44,7 @@ void main() {
         : material.diffuse;
 
     // **use isLightOff == 1** to skip lighting
-    if (ubo.isLightOff == 1) {
+    if (ubo.isLightOff == 0) {
         outColor = vec4(baseColor, material.dissolve);
         return;
     }
@@ -55,32 +55,36 @@ void main() {
     // ambient + emissive
     vec3 color = material.ambient + material.emissive;
 
-    // loop over spot-lights
-    float blurFactor = 0.01;
+    vec3 lightestSpot= vec3(0.0);
     for (int i = 0; i < ubo.numLights; ++i) {
-        vec3 Lpos = ubo.lightPositions[i].xyz;
-        float I   = ubo.lightIntensities[i].x;
+        vec3  Lpos = ubo.lightPositions[i].xyz;
+        float I    = ubo.lightIntensities[i].x;
 
-        // aim cone toward objectCenter
+        // 1) Spotlight cone test
         vec3 spotAxis = normalize(ubo.objectCenter - Lpos);
         vec3 fragDir  = normalize(fragWorldPos - Lpos);
         float cosA    = dot(spotAxis, fragDir);
         if (cosA < ubo.spotCosCutoff) continue;
 
-        vec3 L    = normalize(Lpos - fragWorldPos);
+        // 2) Distance attenuation (gentler)
         float d   = length(Lpos - fragWorldPos);
-        float att = 1.0 / (d + 0.032 * d * d);
+        float att = 1.0 / (1.0 + 0.1 * d);  // or 1/(d + 0.016 d²), etc.
 
-        float diff = max(dot(N, L), 0.0);
-        vec3  R    = reflect(-L, N);
-        float spec = pow(max(dot(V, R), 0.0),
-                         material.specularExponent * (1.0 - blurFactor));
+        // 3) Diffuse + spec
+        float diff = max(dot(N, normalize(Lpos - fragWorldPos)), 0.0);
+        vec3  R    = reflect(-normalize(Lpos - fragWorldPos), N);
+        float spec = pow(max(dot(V, R), 0.0), material.specularExponent);
 
+        // 4) Soft‐edge the cone
         float edge = smoothstep(ubo.spotCosCutoff, 1.0, cosA);
-        color += (diff * baseColor + spec * material.specular)
-               * att * I * edge;
-    }
 
+        // 5) Accumulate
+        vec3 tempcol= (diff * baseColor + spec * material.specular)
+            * att * I * edge;
+        lightestSpot = max(lightestSpot, tempcol);
+
+    }
+    color += lightestSpot;
     color = clamp(color, 0.0, 1.0);
     outColor = vec4(color, material.dissolve);
 }
