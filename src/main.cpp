@@ -31,19 +31,32 @@ static int failure(int value) {
     return -1;
 }
 
-static void showControls(){
-    std::cout << "________CONTROLS________" << std::endl;
-    std::cout << "Camera Controls:" << std::endl;
-    std::cout << "Rotate: [w] [a] [s] [d]" << std::endl;
-    std::cout << "Zoom: [scroll up] [scroll down]" << std::endl;
-    std::cout << "Reset camera: [r]" << std::endl;
-    std::cout << "Object Controls:" << std::endl;
-    std::cout << "Move: [left click + scroll] [left click + move mouse]" << std::endl;
-    std::cout << "Rotate: [up] [down] [left] [right]" << std::endl;
-    std::cout << "Other Controls:" << std::endl;
-    std::cout << "Enable/Disable lights: [l]" << std::endl;
-    std::cout << "Exit: [esc] [q]" << std::endl;
+static void showControls() {
+    std::cout << "\n========== CONTROLS ==========\n";
+
+    std::cout << "\n[Camera Controls]\n";
+    std::cout << "  - Rotate:          W / A / S / D\n";
+    std::cout << "  - Zoom:            Scroll Up / Down\n";
+    std::cout << "  - Reset Camera:    R\n";
+
+    std::cout << "\n[Object Controls]\n";
+    std::cout << "  - Move:            Left Click + Scroll or Mouse Drag\n";
+    std::cout << "  - Rotate:          Arrow Keys (↑ ↓ ← →)\n";
+
+    std::cout << "\n[Lighting Controls]\n";
+    std::cout << "  - L:               Toggle full material lighting (Kd-only vs. full)\n";
+    std::cout << "  - Numpad 0:        Enable all lights\n";
+    std::cout << "  - Numpad 9:        Disable all lights\n";
+    std::cout << "  - Numpad 1–8:      Enable only light source [1–8]\n";
+
+    std::cout << "\n[Other Controls]\n";
+    std::cout << "  - Exit:            ESC / Q\n";
+
+    std::cout << "==============================\n\n";
 }
+
+
+
 
 int main(int ac, char** av) {
     if (ac != 2)

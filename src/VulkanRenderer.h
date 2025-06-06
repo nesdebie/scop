@@ -180,7 +180,6 @@ class VulkanRenderer {
         void createFallbackUniformBuffer();
         void createDepthResources();
 
-        VkFormat findDepthFormat();
         VkImageView createImageView(VkImage image, VkFormat format);
 
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
