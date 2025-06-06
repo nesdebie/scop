@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) uniform UBO {
     mat4 proj;
 
     vec3 cameraPos;
-    float radius;
+    int lightMode;
 
     vec3 objectCenter;
     float spotCosCutoff;
@@ -57,6 +57,8 @@ void main() {
 
     vec3 lightestSpot= vec3(0.0);
     for (int i = 0; i < ubo.numLights; ++i) {
+        if (ubo.lightMode > 0 && ubo.lightMode != i + 1)
+            continue;
         vec3  Lpos = ubo.lightPositions[i].xyz;
         float I    = ubo.lightIntensities[i].x;
 

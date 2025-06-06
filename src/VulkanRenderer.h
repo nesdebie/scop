@@ -47,6 +47,7 @@ class VulkanRenderer {
         float cameraDistance = 2.0f;
         float lightIntensity = 1.0f;
         glm::vec3 modelRotation = glm::vec3(0.0f);
+        int lightMode = 0;
 
     private:
         struct GpuMesh {
@@ -133,6 +134,7 @@ class VulkanRenderer {
         glm::vec3 modelOffset = glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;
+        //int lightMode = 0;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;

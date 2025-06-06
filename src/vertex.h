@@ -25,7 +25,7 @@ struct alignas(16) UniformBufferObject {
     glm::mat4 proj;                        // offset 128
 
     glm::vec3 cameraPos;                   // offset 192 (12 bytes)
-    float     radius;                       // offset 204 (4 bytes)
+    int       lightMode;                       // offset 204 (4 bytes)
 
     glm::vec3 objectCenter;                // offset 208 (12 bytes)
     float     spotCosCutoff;               // offset 220 (4 bytes)
