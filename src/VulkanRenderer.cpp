@@ -848,8 +848,9 @@ void VulkanRenderer::mainLoop() {
     }
     vkDeviceWaitIdle(device);
 }
-
-void VulkanRenderer::handleInput() {    
+#include <iostream>
+void VulkanRenderer::handleInput() {  
+    // ROTATE CAMERA  
     float adjustedRotation = ROTATION_SPEED * objectRadius;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= adjustedRotation;
@@ -859,14 +860,18 @@ void VulkanRenderer::handleInput() {
         cameraPitch += adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPitch -= adjustedRotation;
+    // CLOSE
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    // RESET CAMERA
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         modelOffset = glm::vec3(0.0f);
         cameraYaw = 0.0f;
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
     }
+    // ROTATE OBJECT
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         modelRotation.x -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
@@ -875,9 +880,16 @@ void VulkanRenderer::handleInput() {
         modelRotation.y -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         modelRotation.y += adjustedRotation;
+    for (int key = GLFW_KEY_KP_0; key <= GLFW_KEY_KP_9; ++key) {
+        if (glfwGetKey(window, key) == GLFW_PRESS) {
+            lightMode = key - GLFW_KEY_KP_0;  // Gets 0-9
+        }
+    }
+
+    // LIGHT CONTROLS
     int lState = glfwGetKey(window, GLFW_KEY_L);
     if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
-        isLightOff = 1 - isLightOff; // toggle light state
+        isLightOff = 1 - isLightOff;
     prevLState = lState;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
@@ -932,7 +944,7 @@ void VulkanRenderer::updateUniformBuffer() {
                    );
     ubo.proj[1][1] *= -1;
     ubo.cameraPos = cameraPos;
-    ubo.radius     = objectRadius;  // our padding slot
+    ubo.lightMode     = lightMode;
     ubo.objectCenter = objectCenter;
     // e.g. a 45° half-angle → cos(45°)=0.707
     ubo.spotCosCutoff= cos(glm::radians(90.0f));
