@@ -86,7 +86,7 @@ int main(int ac, char** av) {
 
     std::vector<VulkanRenderer::MeshPackage> meshPackages;
     for (const auto& sub : submeshes) {
-        meshPackages.push_back({sub.vertices, sub.indices, sub.textureFile, sub.diffuseColor});
+        meshPackages.push_back({sub.vertices, sub.indices, sub.textureFile, sub.diffuseColor, sub.hasMapKdInitially});
     }
 
     if (!renderer.init(meshPackages)) 

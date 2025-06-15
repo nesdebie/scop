@@ -35,6 +35,8 @@ class VulkanRenderer {
             std::vector<uint32_t> indices;
             std::string textureFile;
             glm::vec3 diffuseColor;
+            bool hasMapKdInitially;
+
         };
         
         bool init(const std::vector<MeshPackage>& meshPackages);
@@ -48,9 +50,11 @@ class VulkanRenderer {
         float lightIntensity = 1.0f;
         glm::vec3 modelRotation = glm::vec3(0.0f);
         int lightMode = 0;
+        bool textureToggled = false;
 
     private:
         struct GpuMesh {
+            bool hasMapKdInitially;
             VkBuffer vertexBuffer;
             VkDeviceMemory vertexMemory;
             VkBuffer indexBuffer;
@@ -131,6 +135,7 @@ class VulkanRenderer {
         bool leftMousePressed = false;
         int isLightOff = 0;
         int prevLState = GLFW_RELEASE;
+        int prevTState = GLFW_RELEASE;
         glm::vec3 modelOffset = glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;

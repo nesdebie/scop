@@ -55,6 +55,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         GpuMesh mesh;
         mesh.indexCount = pkg.indices.size();
         mesh.textureFile = pkg.textureFile;
+        mesh.hasMapKdInitially = pkg.hasMapKdInitially;
 
         createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
         createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
@@ -920,6 +921,46 @@ void VulkanRenderer::handleInput() {
     prevLState = lState;
 
     cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
+
+    // APPLY TEXTURE
+    int tState = glfwGetKey(window, GLFW_KEY_T);
+    if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE) {
+        textureToggled = !textureToggled;
+        toggleTexture();
+    }
+    prevTState = tState;
+}
+
+void VulkanRenderer::toggleTexture() {
+    for (auto& mesh : gpuMeshes) {
+        if (mesh.hasMapKdInitially)
+            continue; // Ne touche pas aux submeshes qui avaient une texture à l'origine
+
+        if (textureToggled) {
+            // Appliquer default.png
+            mesh.textureFile = "tex/default.png";
+            createTextureImage("models/" + mesh.textureFile,
+                mesh.textureImage, mesh.textureMemory,
+                mesh.textureImageView, mesh.textureSampler);
+        } else {
+            // Supprimer texture
+            mesh.textureFile.clear();
+            mesh.textureImageView = VK_NULL_HANDLE;
+            mesh.textureSampler = VK_NULL_HANDLE;
+        }
+
+        MaterialUBO mat{};
+        mat.useTexture = textureToggled ? 1 : 0;
+
+        void* data;
+        vkMapMemory(device, mesh.materialBufferMemory, 0, sizeof(MaterialUBO), 0, &data);
+        memcpy(data, &mat, sizeof(MaterialUBO));
+        vkUnmapMemory(device, mesh.materialBufferMemory);
+
+        createDescriptorSet(mesh);
+    }
+
+    createCommandBuffers();  // Rebuild les commandes avec les nouveaux bindings
 }
 
 

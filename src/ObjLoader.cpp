@@ -133,6 +133,7 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
                     miss >> matName;
                     kdColor = glm::vec3(1.0f);
                 } else if (token == "map_Kd") {
+                    currentSubMesh.hasMapKdInitially = true;
                     miss >> texName;
                     if (!texName.empty()) {
                         std::ifstream texFile("models/" + texName);

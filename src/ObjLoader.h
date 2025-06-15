@@ -34,6 +34,7 @@ struct SubMesh {
     float dissolve = 1.0f;
     float refractionIndex = 1.0f;
     int illumModel = 2;
+    bool hasMapKdInitially = false;
 };
 
 
