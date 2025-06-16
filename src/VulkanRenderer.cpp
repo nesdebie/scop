@@ -56,6 +56,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         mesh.indexCount = pkg.indices.size();
         mesh.textureFile = pkg.textureFile;
         mesh.hasMapKdInitially = pkg.hasMapKdInitially;
+        mesh.originalDiffuseColor = pkg.diffuseColor;
 
         createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
         createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
@@ -879,7 +880,7 @@ void VulkanRenderer::mainLoop() {
 
 void VulkanRenderer::handleInput() {  
     // ROTATE CAMERA  
-    float adjustedRotation = ROTATION_SPEED * objectRadius;
+    float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -934,16 +935,14 @@ void VulkanRenderer::handleInput() {
 void VulkanRenderer::toggleTexture() {
     for (auto& mesh : gpuMeshes) {
         if (mesh.hasMapKdInitially)
-            continue; // Ne touche pas aux submeshes qui avaient une texture à l'origine
+            continue;
 
         if (textureToggled) {
-            // Appliquer default.png
             mesh.textureFile = "tex/default.png";
             createTextureImage("models/" + mesh.textureFile,
                 mesh.textureImage, mesh.textureMemory,
                 mesh.textureImageView, mesh.textureSampler);
         } else {
-            // Supprimer texture
             mesh.textureFile.clear();
             mesh.textureImageView = VK_NULL_HANDLE;
             mesh.textureSampler = VK_NULL_HANDLE;
@@ -951,16 +950,30 @@ void VulkanRenderer::toggleTexture() {
 
         MaterialUBO mat{};
         mat.useTexture = textureToggled ? 1 : 0;
+        mat.diffuse = textureToggled ? glm::vec3(0.0f) : mesh.originalDiffuseColor;
+
 
         void* data;
         vkMapMemory(device, mesh.materialBufferMemory, 0, sizeof(MaterialUBO), 0, &data);
         memcpy(data, &mat, sizeof(MaterialUBO));
         vkUnmapMemory(device, mesh.materialBufferMemory);
-
-        createDescriptorSet(mesh);
     }
 
-    createCommandBuffers();  // Rebuild les commandes avec les nouveaux bindings
+    destroyDescriptorPool();     // 🧨 important
+    createDescriptorPool();      // 🆕 recreate pool
+    for (auto& mesh : gpuMeshes)
+        createDescriptorSet(mesh); // 🆕 allocate sets again
+
+    createCommandBuffers();      // re-record with new sets
+}
+
+
+
+void VulkanRenderer::destroyDescriptorPool() {
+    if (descriptorPool != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+        descriptorPool = VK_NULL_HANDLE;
+    }
 }
 
 

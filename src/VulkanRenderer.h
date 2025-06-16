@@ -18,7 +18,7 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 #define WINDOW_DEPTH 42.0f
-#define ROTATION_SPEED 0.001f
+#define ROTATION_SPEED 0.01f
 
 class VulkanRenderer {
     public:
@@ -55,6 +55,7 @@ class VulkanRenderer {
     private:
         struct GpuMesh {
             bool hasMapKdInitially;
+            glm::vec3 originalDiffuseColor;
             VkBuffer vertexBuffer;
             VkDeviceMemory vertexMemory;
             VkBuffer indexBuffer;
@@ -202,5 +203,7 @@ class VulkanRenderer {
         std::vector<char> readFile(const std::string& filename);
         VkShaderModule createShaderModule(const std::vector<char>& code);
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        void destroyDescriptorPool();
+
 };
 #endif
