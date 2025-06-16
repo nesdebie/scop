@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   VulkanRenderer.h                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
+/*   Updated: 2025/06/16 09:33:24 by nesdebie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef VULKAN_RENDERER_H
 #define VULKAN_RENDERER_H
 
@@ -10,7 +22,6 @@
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <stb_image.h>
 
 #include "vertex.h"
@@ -34,7 +45,7 @@ class VulkanRenderer {
             std::vector<Vertex> vertices;
             std::vector<uint32_t> indices;
             std::string textureFile;
-            glm::vec3 diffuseColor;
+            my_glm::vec3 diffuseColor;
             bool hasMapKdInitially;
 
         };
@@ -44,18 +55,18 @@ class VulkanRenderer {
         void run();
         void cleanup();
 
-        glm::vec3 objectCenter = glm::vec3(0.0f);
+        my_glm::vec3 objectCenter = my_glm::vec3(0.0f);
         float objectRadius = 1.0f;
         float cameraDistance = 2.0f;
         float lightIntensity = 1.0f;
-        glm::vec3 modelRotation = glm::vec3(0.0f);
+        my_glm::vec3 modelRotation = my_glm::vec3(0.0f);
         int lightMode = 0;
         bool textureToggled = false;
 
     private:
         struct GpuMesh {
             bool hasMapKdInitially;
-            glm::vec3 originalDiffuseColor;
+            my_glm::vec3 originalDiffuseColor;
             VkBuffer vertexBuffer;
             VkDeviceMemory vertexMemory;
             VkBuffer indexBuffer;
@@ -72,13 +83,13 @@ class VulkanRenderer {
         };
 
         struct alignas(16) MaterialUBO {
-            glm::vec3 diffuse;
+            my_glm::vec3 diffuse;
             float specularExponent;
-            glm::vec3 ambient;
+            my_glm::vec3 ambient;
             float dissolve;
-            glm::vec3 specular;
+            my_glm::vec3 specular;
             float refractionIndex;
-            glm::vec3 emissive;
+            my_glm::vec3 emissive;
             int illumModel;
             int useTexture;
         };
@@ -137,7 +148,7 @@ class VulkanRenderer {
         int isLightOff = 0;
         int prevLState = GLFW_RELEASE;
         int prevTState = GLFW_RELEASE;
-        glm::vec3 modelOffset = glm::vec3(0.0f);
+        my_glm::vec3 modelOffset = my_glm::vec3(0.0f);
         size_t indexCount = 0;
         std::string textureFile;
         //int lightMode = 0;

@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/05 11:50:01 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/16 09:34:35 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
             createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
     
         MaterialUBO mat{};
-        mat.diffuse = pkg.textureFile.empty() ? pkg.diffuseColor : glm::vec3(0.0f); // any color, won't be used if textured
+        mat.diffuse = pkg.textureFile.empty() ? pkg.diffuseColor : my_glm::vec3(0.0f); // any color, won't be used if textured
         mat.useTexture = pkg.textureFile.empty() ? 0 : 1;
 
         createBuffer(sizeof(MaterialUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -102,17 +102,17 @@ void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double y
     (void)xoffset; // Unused parameter
     VulkanRenderer* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
     if (renderer && renderer->leftMousePressed) {
-        glm::vec3 cameraPos = glm::vec3(
+        my_glm::vec3 cameraPos = my_glm::vec3(
             renderer->cameraDistance * cos(renderer->cameraPitch) * sin(renderer->cameraYaw),
             renderer->cameraDistance * sin(renderer->cameraPitch),
             renderer->cameraDistance * cos(renderer->cameraPitch) * cos(renderer->cameraYaw)
         );
 
-        glm::vec3 forward = glm::normalize(renderer->objectCenter - cameraPos);
+        my_glm::vec3 forward = my_glm::normalize(renderer->objectCenter - cameraPos);
         renderer->modelOffset += forward * static_cast<float>(yoffset) * 0.5f;
     } else {
         renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
-        renderer->cameraDistance = glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
+        renderer->cameraDistance = my_glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
     }
 }
 
@@ -140,15 +140,15 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
     float sensitivity = 0.005f;
 
-    glm::vec3 cameraPos = glm::vec3(
+    my_glm::vec3 cameraPos = my_glm::vec3(
         renderer->cameraDistance * cos(renderer->cameraPitch) * sin(renderer->cameraYaw),
         renderer->cameraDistance * sin(renderer->cameraPitch),
         renderer->cameraDistance * cos(renderer->cameraPitch) * cos(renderer->cameraYaw)
     );
 
-    glm::vec3 forward = glm::normalize(renderer->objectCenter - cameraPos);
-    glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
-    glm::vec3 up = glm::normalize(glm::cross(right, forward));
+    my_glm::vec3 forward = my_glm::normalize(renderer->objectCenter - cameraPos);
+    my_glm::vec3 right = my_glm::normalize(my_glm::cross(forward, my_glm::vec3(0, 1, 0)));
+    my_glm::vec3 up = my_glm::normalize(my_glm::cross(right, forward));
 
     renderer->modelOffset += right * static_cast<float>(dx) * sensitivity;
     renderer->modelOffset += up * static_cast<float>(-dy) * sensitivity;
@@ -871,7 +871,7 @@ void VulkanRenderer::handleInput() {
 
     // RESET CAMERA
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        modelOffset = glm::vec3(0.0f);
+        modelOffset = my_glm::vec3(0.0f);
         cameraYaw = 0.0f;
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
@@ -897,7 +897,7 @@ void VulkanRenderer::handleInput() {
         isLightOff = 1 - isLightOff;
     prevLState = lState;
 
-    cameraPitch = glm::clamp(cameraPitch, -glm::half_pi<float>() + 0.01f, glm::half_pi<float>() - 0.01f);
+    cameraPitch = my_glm::clamp(cameraPitch, -my_glm::half_pi() + 0.01f, my_glm::half_pi() - 0.01f);
 
     // APPLY TEXTURE
     int tState = glfwGetKey(window, GLFW_KEY_T);
@@ -926,7 +926,7 @@ void VulkanRenderer::toggleTexture() {
 
         MaterialUBO mat{};
         mat.useTexture = textureToggled ? 1 : 0;
-        mat.diffuse = textureToggled ? glm::vec3(0.0f) : mesh.originalDiffuseColor;
+        mat.diffuse = textureToggled ? my_glm::vec3(0.0f) : mesh.originalDiffuseColor;
 
 
         void* data;
@@ -935,12 +935,12 @@ void VulkanRenderer::toggleTexture() {
         vkUnmapMemory(device, mesh.materialBufferMemory);
     }
 
-    destroyDescriptorPool();     // 🧨 important
-    createDescriptorPool();      // 🆕 recreate pool
+    destroyDescriptorPool();
+    createDescriptorPool();
     for (auto& mesh : gpuMeshes)
-        createDescriptorSet(mesh); // 🆕 allocate sets again
+        createDescriptorSet(mesh);
 
-    createCommandBuffers();      // re-record with new sets
+    createCommandBuffers();
 }
 
 
@@ -983,19 +983,19 @@ void VulkanRenderer::drawFrame() {
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
-    ubo.model = glm::translate(glm::mat4(1.0f), modelOffset);
-    ubo.model = glm::rotate(ubo.model, modelRotation.x, glm::vec3(1,0,0));
-    ubo.model = glm::rotate(ubo.model, modelRotation.y, glm::vec3(0,1,0));
-    ubo.model = glm::rotate(ubo.model, modelRotation.z, glm::vec3(0,0,1));
+    ubo.model = my_glm::translate(my_glm::mat4(1.0f), modelOffset);
+    ubo.model = my_glm::rotate(ubo.model, modelRotation.x, my_glm::vec3(1,0,0));
+    ubo.model = my_glm::rotate(ubo.model, modelRotation.y, my_glm::vec3(0,1,0));
+    ubo.model = my_glm::rotate(ubo.model, modelRotation.z, my_glm::vec3(0,0,1));
 
-    glm::vec3 cameraPos = {
-        cameraDistance * cos(cameraPitch) * sin(cameraYaw),
-        cameraDistance * sin(cameraPitch),
-        cameraDistance * cos(cameraPitch) * cos(cameraYaw)
+    my_glm::vec3 cameraPos = {
+        cameraDistance * std::cos(cameraPitch) * std::sin(cameraYaw),
+        cameraDistance * std::sin(cameraPitch),
+        cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
     };
-    ubo.view      = glm::lookAt(cameraPos, objectCenter, {0,1,0});
-    ubo.proj      = glm::perspective(
-                       glm::radians(45.0f),
+    ubo.view      = my_glm::lookAt(cameraPos, objectCenter, {0,1,0});
+    ubo.proj      = my_glm::perspective(
+                       my_glm::radians(45.0f),
                        float(swapChainExtent.width) / swapChainExtent.height,
                        0.1f, WINDOW_DEPTH
                    );
@@ -1003,15 +1003,15 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.cameraPos = cameraPos;
     ubo.lightMode     = lightMode;
     ubo.objectCenter = objectCenter;
-    ubo.spotCosCutoff= cos(glm::radians(90.0f));
+    ubo.spotCosCutoff= cos(my_glm::radians(90.0f));
     int idx = 0;
     for (int xi = -1; xi <= 1; xi += 2) {
         for (int yi = -1; yi <= 1; yi += 2) {
             for (int zi = -1; zi <= 1; zi += 2) {
-                glm::vec3 dir = glm::normalize(glm::vec3(float(xi), float(yi), float(zi)));
-                glm::vec3 worldPos = objectCenter + objectRadius * dir;
-                ubo.lightPositions[idx] = glm::vec4(worldPos, 1.0f);
-                ubo.lightIntensities[idx] = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+                my_glm::vec3 dir = my_glm::normalize(my_glm::vec3(float(xi), float(yi), float(zi)));
+                my_glm::vec3 worldPos = objectCenter + objectRadius * dir;
+                ubo.lightPositions[idx] = my_glm::vec4(worldPos, 1.0f);
+                ubo.lightIntensities[idx] = my_glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
                 ++idx;
             }
         }

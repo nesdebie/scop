@@ -21,27 +21,27 @@ static bool isValidOBJFilename(const std::string& filename) {
     return !(filename.empty() || !ends_with(filename, ".obj") || ends_with(filename, "/.obj") || filename.size() == 4);
 }
 
-static void parseVertexLine(std::istringstream& iss, std::vector<glm::vec3>& temp_positions) {
-    glm::vec3 pos;
+static void parseVertexLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_positions) {
+    my_glm::vec3 pos;
     iss >> pos.x >> pos.y >> pos.z;
     temp_positions.push_back(pos);
 }
 
-static void parseTexcoordLine(std::istringstream& iss, std::vector<glm::vec2>& temp_texcoords) {
-    glm::vec2 uv;
+static void parseTexcoordLine(std::istringstream& iss, std::vector<my_glm::vec2>& temp_texcoords) {
+    my_glm::vec2 uv;
     iss >> uv.x >> uv.y;
     uv.y = 1.0f - uv.y;
     temp_texcoords.push_back(uv);
 }
 
-static void parseNormalLine(std::istringstream& iss, std::vector<glm::vec3>& temp_normals) {
-    glm::vec3 normal;
+static void parseNormalLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_normals) {
+    my_glm::vec3 normal;
     iss >> normal.x >> normal.y >> normal.z;
     temp_normals.push_back(normal);
 }
 
-static void parseFaceLine(std::istringstream& iss, const std::vector<glm::vec3>& temp_positions,
-                          const std::vector<glm::vec3>& temp_normals, const std::vector<glm::vec2>& temp_texcoords,
+static void parseFaceLine(std::istringstream& iss, const std::vector<my_glm::vec3>& temp_positions,
+                          const std::vector<my_glm::vec3>& temp_normals, const std::vector<my_glm::vec2>& temp_texcoords,
                           std::vector<Vertex>& vertices, std::vector<uint32_t>& indices,
                           std::unordered_map<Vertex, uint32_t, VertexHash>& uniqueVertices) {
     std::vector<uint32_t> faceIndices;
@@ -62,8 +62,8 @@ static void parseFaceLine(std::istringstream& iss, const std::vector<glm::vec3>&
 
         Vertex vertex{};
         vertex.position = temp_positions[posIdx];
-        vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ? temp_normals[normIdx] : glm::vec3(0.0f, 0.0f, 1.0f);
-        vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : glm::vec2((temp_positions[posIdx].x + 1.0f) * 0.5f, (temp_positions[posIdx].y + 1.0f) * 0.5f);
+        vertex.normal = (normIdx >= 0 && normIdx < (int)temp_normals.size()) ? temp_normals[normIdx] : my_glm::vec3(0.0f, 0.0f, 1.0f);
+        vertex.texCoord = (texIdx >= 0 && texIdx < (int)temp_texcoords.size()) ? temp_texcoords[texIdx] : my_glm::vec2((temp_positions[posIdx].x + 1.0f) * 0.5f, (temp_positions[posIdx].y + 1.0f) * 0.5f);
 
         if (uniqueVertices.count(vertex) == 0) {
             uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
@@ -91,16 +91,16 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
         return false;
     }
 
-    std::vector<glm::vec3> temp_positions;
-    std::vector<glm::vec3> temp_normals;
-    std::vector<glm::vec2> temp_texcoords;
+    std::vector<my_glm::vec3> temp_positions;
+    std::vector<my_glm::vec3> temp_normals;
+    std::vector<my_glm::vec2> temp_texcoords;
     std::unordered_map<Vertex, uint32_t, VertexHash> uniqueVertices;
     std::map<std::string, std::string> materialTextures;
-    std::map<std::string, glm::vec3> materialColors;
+    std::map<std::string, my_glm::vec3> materialColors;
 
-    std::map<std::string, glm::vec3> materialAmbient;
-    std::map<std::string, glm::vec3> materialSpecular;
-    std::map<std::string, glm::vec3> materialEmissive;
+    std::map<std::string, my_glm::vec3> materialAmbient;
+    std::map<std::string, my_glm::vec3> materialSpecular;
+    std::map<std::string, my_glm::vec3> materialEmissive;
     std::map<std::string, float> materialSpecularExp;
     std::map<std::string, float> materialDissolve;
     std::map<std::string, float> materialRefraction;
@@ -124,14 +124,14 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
             if (!mtl.is_open() && ends_with(mtlFilename, ".mtl"))
                 mtl.open("models/mtl/" + mtlFilename);
             std::string mline, matName, texName;
-            glm::vec3 kdColor(1.0f);
+            my_glm::vec3 kdColor(1.0f);
             while (std::getline(mtl, mline)) {
                 std::istringstream miss(mline);
                 std::string token;
                 miss >> token;
                 if (token == "newmtl") {
                     miss >> matName;
-                    kdColor = glm::vec3(1.0f);
+                    kdColor = my_glm::vec3(1.0f);
                 } else if (token == "map_Kd") {
                     currentSubMesh.hasMapKdInitially = true;
                     miss >> texName;
@@ -151,20 +151,20 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
                 } else if (token == "Kd") {
                     float r, g, b;
                     miss >> r >> g >> b;
-                    kdColor = glm::vec3(r, g, b);
+                    kdColor = my_glm::vec3(r, g, b);
                     materialColors[matName] = kdColor;
                 } else if (token == "Ka") {
                     float r, g, b;
                     miss >> r >> g >> b;
-                    materialAmbient[matName] = glm::vec3(r, g, b);
+                    materialAmbient[matName] = my_glm::vec3(r, g, b);
                 } else if (token == "Ks") {
                     float r, g, b;
                     miss >> r >> g >> b;
-                    materialSpecular[matName] = glm::vec3(r, g, b);
+                    materialSpecular[matName] = my_glm::vec3(r, g, b);
                 } else if (token == "Ke") {
                     float r, g, b;
                     miss >> r >> g >> b;
-                    materialEmissive[matName] = glm::vec3(r, g, b);
+                    materialEmissive[matName] = my_glm::vec3(r, g, b);
                 } else if (token == "Ns") {
                     float ns;
                     miss >> ns;
@@ -191,10 +191,10 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
             }
             iss >> currentMaterial;
             currentSubMesh.textureFile = materialTextures[currentMaterial];
-            currentSubMesh.diffuseColor = materialColors.count(currentMaterial) ? materialColors[currentMaterial] : glm::vec3(1.0f);
-            currentSubMesh.ambientColor = materialAmbient.count(currentMaterial) ? materialAmbient[currentMaterial] : glm::vec3(1.0f);
-            currentSubMesh.specularColor = materialSpecular.count(currentMaterial) ? materialSpecular[currentMaterial] : glm::vec3(0.0f);
-            currentSubMesh.emissiveColor = materialEmissive.count(currentMaterial) ? materialEmissive[currentMaterial] : glm::vec3(0.0f);
+            currentSubMesh.diffuseColor = materialColors.count(currentMaterial) ? materialColors[currentMaterial] : my_glm::vec3(1.0f);
+            currentSubMesh.ambientColor = materialAmbient.count(currentMaterial) ? materialAmbient[currentMaterial] : my_glm::vec3(1.0f);
+            currentSubMesh.specularColor = materialSpecular.count(currentMaterial) ? materialSpecular[currentMaterial] : my_glm::vec3(0.0f);
+            currentSubMesh.emissiveColor = materialEmissive.count(currentMaterial) ? materialEmissive[currentMaterial] : my_glm::vec3(0.0f);
             currentSubMesh.specularExponent = materialSpecularExp.count(currentMaterial) ? materialSpecularExp[currentMaterial] : 1.0f;
             currentSubMesh.dissolve = materialDissolve.count(currentMaterial) ? materialDissolve[currentMaterial] : 1.0f;
             currentSubMesh.refractionIndex = materialRefraction.count(currentMaterial) ? materialRefraction[currentMaterial] : 1.0f;

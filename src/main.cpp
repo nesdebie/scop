@@ -6,13 +6,15 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/05 10:42:03 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/16 09:33:11 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ObjLoader.h"
 #include "VulkanRenderer.h"
 #include <iostream>
+#include <cfloat>
+
 
 static int giveGoodUsage(char *str){
     std::cerr << "Usage: " << str << " models/<name>.obj" << std::endl;
@@ -50,6 +52,7 @@ static void showControls() {
     std::cout << "  - Numpad 1–8:      Enable only light source [1–8]\n";
 
     std::cout << "\n[Other Controls]\n";
+    std::cout << "  - Add Texture:     T\n";
     std::cout << "  - Exit:            ESC / Q\n";
 
     std::cout << "==============================\n\n";
@@ -67,18 +70,18 @@ int main(int ac, char** av) {
     if (!loadOBJ(objPath, submeshes))
         return failure(1);
 
-    glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
+    my_glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
     for (const auto& sub : submeshes) {
         for (const auto& v : sub.vertices) {
-            minBounds = glm::min(minBounds, v.position);
-            maxBounds = glm::max(maxBounds, v.position);
+            minBounds = my_glm::min(minBounds, v.position);
+            maxBounds = my_glm::max(maxBounds, v.position);
         }
     }
-    glm::vec3 center = 0.5f * (minBounds + maxBounds);
-    glm::vec3 size = maxBounds - minBounds;
+    my_glm::vec3 center = 0.5f * (minBounds + maxBounds);
+    my_glm::vec3 size = maxBounds - minBounds;
 
 
-    float radius = glm::length(size) * 0.5f;
+    float radius = my_glm::length(size) * 0.5f;
     VulkanRenderer renderer;
     renderer.objectCenter = center;
     renderer.objectRadius = radius;
