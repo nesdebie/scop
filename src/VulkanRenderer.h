@@ -180,8 +180,6 @@ class VulkanRenderer {
         void createDescriptorPool();
         void createDescriptorSet(GpuMesh & mesh);
         void createTextureImage(const std::string& path, VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler);
-        void createTextureImageView();
-        void createTextureSampler();
         void createFallbackWhiteTexture(VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler);
         void createFallbackUniformBuffer();
         void createDepthResources();

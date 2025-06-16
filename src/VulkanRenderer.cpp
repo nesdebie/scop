@@ -627,30 +627,6 @@ void VulkanRenderer::createFallbackUniformBuffer() {
 }
 
 
-void VulkanRenderer::createTextureImageView() {
-    textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
-}
-
-
-void VulkanRenderer::createTextureSampler() {
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 16;
-    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-    vkCheck(vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler), "Failed to create texture sampler");
-}
-
-
 void VulkanRenderer::createDescriptorPool() {
     uint32_t meshCount = static_cast<uint32_t>(gpuMeshes.size());
     std::array<VkDescriptorPoolSize, 3> poolSizes{};
@@ -911,7 +887,7 @@ void VulkanRenderer::handleInput() {
         modelRotation.y += adjustedRotation;
     for (int key = GLFW_KEY_KP_0; key <= GLFW_KEY_KP_9; ++key) {
         if (glfwGetKey(window, key) == GLFW_PRESS) {
-            lightMode = key - GLFW_KEY_KP_0;  // Gets 0-9
+            lightMode = key - GLFW_KEY_KP_0;
         }
     }
 
