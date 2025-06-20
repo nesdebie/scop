@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:34:35 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/20 14:27:49 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -854,9 +854,10 @@ void VulkanRenderer::mainLoop() {
 }
 
 
-void VulkanRenderer::handleInput() {  
+void VulkanRenderer::handleInput() {
+    float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius + 1.0f) * objectRadius / 10.0f;
     // ROTATE CAMERA  
-    float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius);
+    
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -875,7 +876,11 @@ void VulkanRenderer::handleInput() {
         cameraYaw = 0.0f;
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
+        modelRotation = my_glm::vec3(0.0f);
     }
+
+    cameraPitch = my_glm::clamp(cameraPitch, -my_glm::half_pi() + 0.01f, my_glm::half_pi() - 0.01f);
+
     // ROTATE OBJECT
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         modelRotation.x -= adjustedRotation;
@@ -897,7 +902,6 @@ void VulkanRenderer::handleInput() {
         isLightOff = 1 - isLightOff;
     prevLState = lState;
 
-    cameraPitch = my_glm::clamp(cameraPitch, -my_glm::half_pi() + 0.01f, my_glm::half_pi() - 0.01f);
 
     // APPLY TEXTURE
     int tState = glfwGetKey(window, GLFW_KEY_T);

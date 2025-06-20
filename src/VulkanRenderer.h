@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:33:24 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/20 09:41:13 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ class VulkanRenderer {
         VkSurfaceFormatKHR surfaceFormat;
         VkPresentModeKHR presentMode;
         VkExtent2D extent;
-    private:
+
         void initWindow();
         void mainLoop();
         void handleInput();
