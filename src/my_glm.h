@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:55 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:33:58 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 09:36:05 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ namespace my_glm {
             return *this;
         }
 
+        
         friend vec3 operator*(float s, const vec3& v) { return v * s; }
 
         bool operator==(const vec3& o) const { return x == o.x && y == o.y && z == o.z; }

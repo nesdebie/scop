@@ -3,42 +3,46 @@
 
 newmtl Ash_arms_hat_hair.png
 Ns 96.078431
-Ka 0.000000 0.000000 0.000000
+Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
 map_Kd Ash_arms_hat_hair.png
 
-newmtl PokeTra_Ash_face.png
+newmtl Ash_face.png
 Ns 96.078431
-Ka 0.000000 0.000000 0.000000
+Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd PokeTra_Ash_face.png
+map_Kd Ash_face.png
 
-newmtl trAsh_00_body_col.png
+newmtl Ash_body.png
 Ns 70.588235
-Ka 0.000000 0.000000 0.000000
+Ka 1.000000 1.000000 1.000000
 Kd 0.085899 0.085899 0.085899
 Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd trAsh_00_body_col.png
-map_d trAsh_00_body_col.png
+map_Kd Ash_body.png
+map_d Ash_body.png
 
-newmtl trAsh_00_obj_col.png
+newmtl Ash_backpack.png
 Ns 70.588235
-Ka 0.000000 0.000000 0.000000
+Ka 1.000000 1.000000 1.000000
 Kd 0.085899 0.085899 0.085899
 Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd trAsh_00_obj_col.png
-map_d trAsh_00_obj_col.png
+map_Kd Ash_backpack.png
+map_d Ash_backpack.png

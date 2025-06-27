@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/20 14:27:49 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 09:46:02 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,22 +99,24 @@ void VulkanRenderer::initWindow() {
 }
 
 void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    (void)xoffset; // Unused parameter
-    VulkanRenderer* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
-    if (renderer && renderer->leftMousePressed) {
-        my_glm::vec3 cameraPos = my_glm::vec3(
-            renderer->cameraDistance * cos(renderer->cameraPitch) * sin(renderer->cameraYaw),
-            renderer->cameraDistance * sin(renderer->cameraPitch),
-            renderer->cameraDistance * cos(renderer->cameraPitch) * cos(renderer->cameraYaw)
-        );
+    (void)xoffset;
+    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+    if (!renderer) return;
 
-        my_glm::vec3 forward = my_glm::normalize(renderer->objectCenter - cameraPos);
+    if (renderer->leftMousePressed) {
+        my_glm::mat4 view = renderer->computeViewMatrix();
+        my_glm::vec3 forward = {
+            -view[0][2], -view[1][2], -view[2][2] // Z axis (screen forward)
+        };
+
         renderer->modelOffset += forward * static_cast<float>(yoffset) * 0.5f;
     } else {
         renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
         renderer->cameraDistance = my_glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
     }
 }
+
+
 
 void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int /*mods*/) {
     auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
@@ -140,20 +142,29 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
     float sensitivity = 0.005f;
 
-    my_glm::vec3 cameraPos = my_glm::vec3(
-        renderer->cameraDistance * cos(renderer->cameraPitch) * sin(renderer->cameraYaw),
-        renderer->cameraDistance * sin(renderer->cameraPitch),
-        renderer->cameraDistance * cos(renderer->cameraPitch) * cos(renderer->cameraYaw)
-    );
+    // Compute camera position and view matrix
+    my_glm::mat4 view = renderer->computeViewMatrix();
 
-    my_glm::vec3 forward = my_glm::normalize(renderer->objectCenter - cameraPos);
-    my_glm::vec3 right = my_glm::normalize(my_glm::cross(forward, my_glm::vec3(0, 1, 0)));
-    my_glm::vec3 up = my_glm::normalize(my_glm::cross(right, forward));
+    my_glm::vec3 right = { view[0][0], view[1][0], view[2][0] }; // X axis (screen right)
+    my_glm::vec3 up    = { view[0][1], view[1][1], view[2][1] }; // Y axis (screen up)
 
+    // Apply movement
     renderer->modelOffset += right * static_cast<float>(dx) * sensitivity;
-    renderer->modelOffset += up * static_cast<float>(-dy) * sensitivity;
-
+    renderer->modelOffset += up    * static_cast<float>(-dy) * sensitivity;
 }
+
+
+
+
+my_glm::mat4 VulkanRenderer::computeViewMatrix() const {
+    my_glm::vec3 cameraPos = {
+        cameraDistance * std::cos(cameraPitch) * std::sin(cameraYaw),
+        cameraDistance * std::sin(cameraPitch),
+        cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
+    };
+    return my_glm::lookAt(cameraPos, objectCenter, {0.0f, 1.0f, 0.0f});
+}
+
 
 
 
@@ -987,10 +998,11 @@ void VulkanRenderer::drawFrame() {
 void VulkanRenderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
-    ubo.model = my_glm::translate(my_glm::mat4(1.0f), modelOffset);
+    ubo.model = my_glm::mat4(1.0f);
     ubo.model = my_glm::rotate(ubo.model, modelRotation.x, my_glm::vec3(1,0,0));
     ubo.model = my_glm::rotate(ubo.model, modelRotation.y, my_glm::vec3(0,1,0));
     ubo.model = my_glm::rotate(ubo.model, modelRotation.z, my_glm::vec3(0,0,1));
+    ubo.model = my_glm::translate(ubo.model, modelOffset);
 
     my_glm::vec3 cameraPos = {
         cameraDistance * std::cos(cameraPitch) * std::sin(cameraYaw),

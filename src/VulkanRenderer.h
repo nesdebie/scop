@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/20 09:41:13 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 09:40:37 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,8 @@
 
 #include "vertex.h"
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1440
 #define WINDOW_DEPTH 42.0f
 #define ROTATION_SPEED 0.01f
 
@@ -213,6 +213,6 @@ class VulkanRenderer {
         VkShaderModule createShaderModule(const std::vector<char>& code);
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
         void destroyDescriptorPool();
-
+        my_glm::mat4 computeViewMatrix() const;
 };
 #endif
