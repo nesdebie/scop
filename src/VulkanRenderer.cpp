@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 10:29:02 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 10:51:50 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
             createTextureImage("models/" + pkg.textureFile, mesh.textureImage, mesh.textureMemory, mesh.textureImageView, mesh.textureSampler);
     
         MaterialUBO mat{};
-        mat.diffuse = pkg.textureFile.empty() ? pkg.diffuseColor : my_glm::vec3(0.0f); // any color, won't be used if textured
+        mat.diffuse = pkg.textureFile.empty() ? pkg.diffuseColor : my_glm::vec3(0.0f);
         mat.useTexture = pkg.textureFile.empty() ? 0 : 1;
 
         createBuffer(sizeof(MaterialUBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -106,7 +106,7 @@ void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double y
     if (renderer->leftMousePressed) {
         my_glm::mat4 view = renderer->computeViewMatrix();
         my_glm::vec3 forward = {
-            -view[0][2], -view[1][2], -view[2][2] // Z axis (screen forward)
+            -view[0][2], -view[1][2], -view[2][2]
         };
 
         renderer->modelOffset += forward * static_cast<float>(yoffset) * 0.5f;
@@ -142,13 +142,11 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
     float sensitivity = 0.005f;
 
-    // Compute camera position and view matrix
     my_glm::mat4 view = renderer->computeViewMatrix();
 
     my_glm::vec3 right = { view[0][0], view[1][0], view[2][0] }; // X axis (screen right)
     my_glm::vec3 up    = { view[0][1], view[1][1], view[2][1] }; // Y axis (screen up)
 
-    // Apply movement
     renderer->modelOffset += right * static_cast<float>(dx) * sensitivity;
     renderer->modelOffset += up    * static_cast<float>(-dy) * sensitivity;
 }
@@ -867,7 +865,6 @@ void VulkanRenderer::mainLoop() {
 
 void VulkanRenderer::handleInput() {
     float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius + 1.0f) * objectRadius / 10.0f;
-    // ROTATE CAMERA  
     
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraYaw -= adjustedRotation;
@@ -877,11 +874,10 @@ void VulkanRenderer::handleInput() {
         cameraPitch += adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPitch -= adjustedRotation;
-    // CLOSE
+        
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-    // RESET CAMERA
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         modelOffset = my_glm::vec3(0.0f);
         cameraYaw = 0.0f;
@@ -892,7 +888,6 @@ void VulkanRenderer::handleInput() {
 
     cameraPitch = my_glm::clamp(cameraPitch, -my_glm::half_pi() + 0.01f, my_glm::half_pi() - 0.01f);
 
-    // ROTATE OBJECT
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         modelRotation.x -= adjustedRotation;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
@@ -907,14 +902,11 @@ void VulkanRenderer::handleInput() {
         }
     }
 
-    // LIGHT CONTROLS
     int lState = glfwGetKey(window, GLFW_KEY_L);
     if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
         isLightOff = 1 - isLightOff;
     prevLState = lState;
 
-
-    // APPLY TEXTURE
     int tState = glfwGetKey(window, GLFW_KEY_T);
     if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE) {
         textureToggled = !textureToggled;
@@ -954,7 +946,6 @@ void VulkanRenderer::toggleTexture() {
     createDescriptorPool();
     for (auto& mesh : gpuMeshes)
         createDescriptorSet(mesh);
-
     createCommandBuffers();
 }
 
@@ -990,7 +981,6 @@ void VulkanRenderer::drawFrame() {
     presentInfo.pWaitSemaphores = nullptr;
 
     vkQueuePresentKHR(presentQueue, &presentInfo);
-
     vkQueueWaitIdle(presentQueue);
 }
 
@@ -1108,7 +1098,6 @@ void VulkanRenderer::createDescriptorSetLayout() {
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
-    
 
     vkCheck(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout),
             "Failed to create descriptor set layout!");
@@ -1264,7 +1253,6 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkImageLayout oldLayou
 
     vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(graphicsQueue);
-
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
@@ -1306,6 +1294,5 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t 
 
     vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(graphicsQueue);
-
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
