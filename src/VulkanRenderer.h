@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 10:29:07 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 11:15:10 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,13 +55,10 @@ class VulkanRenderer {
         void run();
         void cleanup();
 
-        my_glm::vec3 objectCenter = my_glm::vec3(0.0f);
-        float objectRadius = 1.0f;
-        float cameraDistance = 2.0f;
-        float lightIntensity = 1.0f;
-        my_glm::vec3 modelRotation = my_glm::vec3(0.0f);
-        int lightMode = 0;
-        bool textureToggled = false;
+        my_glm::vec3 objectCenter;
+        float objectRadius;
+        float cameraDistance;
+
 
     private:
         struct GpuMesh {
@@ -93,7 +90,6 @@ class VulkanRenderer {
             int illumModel;
             int useTexture;
         };
-        
         
         std::vector<GpuMesh> gpuMeshes;
 
@@ -143,14 +139,13 @@ class VulkanRenderer {
 
         float cameraYaw = 0.0f;
         float cameraPitch = 0.0f;
-        double lastMouseX = 0.0, lastMouseY = 0.0;
+        double lastMouseX = 0.0;
+        double lastMouseY = 0.0;
         bool leftMousePressed = false;
         int isLightOff = 0;
         int prevLState = GLFW_RELEASE;
         int prevTState = GLFW_RELEASE;
         my_glm::vec3 modelOffset = my_glm::vec3(0.0f);
-        size_t indexCount = 0;
-        std::string textureFile;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -160,6 +155,10 @@ class VulkanRenderer {
         VkPresentModeKHR presentMode;
         VkExtent2D extent;
 
+        my_glm::vec3 modelRotation = my_glm::vec3(0.0f);
+        int lightMode = 0;
+        bool textureToggled = false;
+        
         void initWindow();
         void mainLoop();
         void handleInput();
