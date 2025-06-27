@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 11:54:23 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 12:06:05 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -811,7 +811,7 @@ void VulkanRenderer::createIndexBuffer(const std::vector<uint32_t>& indices, VkB
 
 
 void VulkanRenderer::createFramebuffers() {
-    swapChainFramebuffers.resize(swapChainImageViews.size());
+    swapChainFrameBuffers.resize(swapChainImageViews.size());
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
         std::array<VkImageView, 2> attachments = {
             swapChainImageViews[i],
@@ -827,13 +827,13 @@ void VulkanRenderer::createFramebuffers() {
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        vkCheck(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]), "Failed to create framebuffer!");
+        vkCheck(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFrameBuffers[i]), "Failed to create framebuffer!");
     }
 }
 
 
 void VulkanRenderer::createCommandBuffers() {
-    commandBuffers.resize(swapChainFramebuffers.size());
+    commandBuffers.resize(swapChainFrameBuffers.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -852,7 +852,7 @@ void VulkanRenderer::createCommandBuffers() {
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = renderPass;
-        renderPassInfo.framebuffer = swapChainFramebuffers[i];
+        renderPassInfo.framebuffer = swapChainFrameBuffers[i];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = swapChainExtent;
 

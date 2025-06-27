@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 11:54:49 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 12:06:05 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,12 +90,12 @@ class VulkanRenderer {
 
         GLFWwindow* window = nullptr;
 
-        VkInstance                  instance;
-        VkSurfaceKHR                 surface;
-        VkPhysicalDevice             physicalDevice;
-        VkDevice                     device;
-        VkQueue                      graphicsQueue;
-        VkQueue                      presentQueue;
+        VkInstance          instance;
+        VkSurfaceKHR        surface;
+        VkPhysicalDevice    physicalDevice;
+        VkDevice            device;
+        VkQueue             graphicsQueue;
+        VkQueue             presentQueue;
 
         VkSwapchainKHR swapChain;
         std::vector<VkImage> swapChainImages;
@@ -106,7 +106,7 @@ class VulkanRenderer {
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
         std::vector<VkImageView> swapChainImageViews;
-        std::vector<VkFramebuffer> swapChainFramebuffers;
+        std::vector<VkFramebuffer> swapChainFrameBuffers;
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffers;
 
