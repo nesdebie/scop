@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 11:25:08 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 11:54:23 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,40 @@ void vkCheck(VkResult result, const char* msg) {
     }
 }
 
-VulkanRenderer::VulkanRenderer() {}
+VulkanRenderer::VulkanRenderer() {
+    this->instance = VK_NULL_HANDLE;
+    this->surface = VK_NULL_HANDLE;
+    this->physicalDevice = VK_NULL_HANDLE;
+    this->device = VK_NULL_HANDLE;
+    this->graphicsQueue = VK_NULL_HANDLE;
+    this->presentQueue = VK_NULL_HANDLE;
+    this->swapChain = VK_NULL_HANDLE;
+    this->renderPass = VK_NULL_HANDLE;
+    this->pipelineLayout = VK_NULL_HANDLE;
+    this->graphicsPipeline = VK_NULL_HANDLE;
+    this->commandPool = VK_NULL_HANDLE;
+    this->uniformBuffer = VK_NULL_HANDLE;
+    this->uniformBufferMemory = VK_NULL_HANDLE;
+    this->fallbackUniformBuffer = VK_NULL_HANDLE;
+    this->fallbackUniformBufferMemory = VK_NULL_HANDLE;
+
+    this->descriptorSetLayout = VK_NULL_HANDLE;
+    this->descriptorPool = VK_NULL_HANDLE;
+    this->descriptorSet = VK_NULL_HANDLE;
+
+    this->depthImage = VK_NULL_HANDLE;
+    this->depthImageMemory = VK_NULL_HANDLE;
+    this->depthImageView = VK_NULL_HANDLE;
+
+    this->leftMousePressed = false;
+    this->isLightOff = 0;
+    this->prevLState = GLFW_RELEASE;
+    this->prevTState = GLFW_RELEASE;
+
+    this->graphicsFamily = -1;
+    this->lightMode = 0;
+    this->textureToggled = false;
+}
 
 VulkanRenderer::~VulkanRenderer() {}
 

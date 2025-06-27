@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 11:39:40 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 11:54:49 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,6 @@ class VulkanRenderer {
     public:
         VulkanRenderer();
         ~VulkanRenderer();
-
-        VulkanRenderer(const VulkanRenderer&) = delete;
-        VulkanRenderer& operator=(const VulkanRenderer&) = delete;
-        VulkanRenderer(VulkanRenderer&&) noexcept = default;
-        VulkanRenderer& operator=(VulkanRenderer&&) noexcept = default;
 
         struct MeshPackage {
             std::vector<Vertex> vertices;
@@ -95,50 +90,50 @@ class VulkanRenderer {
 
         GLFWwindow* window = nullptr;
 
-        VkInstance                  instance = VK_NULL_HANDLE;
-        VkSurfaceKHR                 surface = VK_NULL_HANDLE;
-        VkPhysicalDevice             physicalDevice = VK_NULL_HANDLE;
-        VkDevice                     device = VK_NULL_HANDLE;
-        VkQueue                      graphicsQueue = VK_NULL_HANDLE;
-        VkQueue                      presentQueue = VK_NULL_HANDLE;
+        VkInstance                  instance;
+        VkSurfaceKHR                 surface;
+        VkPhysicalDevice             physicalDevice;
+        VkDevice                     device;
+        VkQueue                      graphicsQueue;
+        VkQueue                      presentQueue;
 
-        VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+        VkSwapchainKHR swapChain;
         std::vector<VkImage> swapChainImages;
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
 
-        VkRenderPass renderPass = VK_NULL_HANDLE;
-        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-        VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+        VkRenderPass renderPass;
+        VkPipelineLayout pipelineLayout;
+        VkPipeline graphicsPipeline;
         std::vector<VkImageView> swapChainImageViews;
         std::vector<VkFramebuffer> swapChainFramebuffers;
-        VkCommandPool commandPool = VK_NULL_HANDLE;
+        VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffers;
 
-        VkBuffer uniformBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory uniformBufferMemory = VK_NULL_HANDLE;
-        VkBuffer fallbackUniformBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory fallbackUniformBufferMemory = VK_NULL_HANDLE;
+        VkBuffer uniformBuffer;
+        VkDeviceMemory uniformBufferMemory;
+        VkBuffer fallbackUniformBuffer;
+        VkDeviceMemory fallbackUniformBufferMemory;
 
-        VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSetLayout descriptorSetLayout;
+        VkDescriptorPool descriptorPool;
+        VkDescriptorSet descriptorSet;
 
-        VkImage depthImage = VK_NULL_HANDLE;
-        VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
-        VkImageView depthImageView = VK_NULL_HANDLE;
+        VkImage depthImage;
+        VkDeviceMemory depthImageMemory;
+        VkImageView depthImageView;
 
         float cameraYaw;
         float cameraPitch;
         double lastMouseX;
         double lastMouseY;
-        bool leftMousePressed = false;
-        int isLightOff = 0;
-        int prevLState = GLFW_RELEASE;
-        int prevTState = GLFW_RELEASE;
+        bool leftMousePressed;
+        int isLightOff;
+        int prevLState;
+        int prevTState;
         my_glm::vec3 modelOffset;
 
-        int graphicsFamily = -1;
+        int graphicsFamily;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         std::vector<VkSurfaceFormatKHR> surfaceFormats;
         std::vector<VkPresentModeKHR> presentModes;
@@ -147,8 +142,8 @@ class VulkanRenderer {
         VkExtent2D extent;
 
         my_glm::vec3 modelRotation;
-        int lightMode = 0;
-        bool textureToggled = false;
+        int lightMode;
+        bool textureToggled;
         
         void initWindow();
         void mainLoop();
