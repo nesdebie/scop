@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 11:15:10 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 11:39:40 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,52 +55,52 @@ class VulkanRenderer {
         void run();
         void cleanup();
 
-        my_glm::vec3 objectCenter;
-        float objectRadius;
-        float cameraDistance;
+        my_glm::vec3    objectCenter;
+        float           objectRadius;
+        float           cameraDistance;
 
 
     private:
         struct GpuMesh {
-            bool hasMapKdInitially;
-            my_glm::vec3 originalDiffuseColor;
-            VkBuffer vertexBuffer;
-            VkDeviceMemory vertexMemory;
-            VkBuffer indexBuffer;
-            VkDeviceMemory indexMemory;
-            uint32_t indexCount;
-            std::string textureFile;
-            VkImage textureImage;
-            VkDeviceMemory textureMemory;
-            VkImageView textureImageView;
-            VkSampler textureSampler;
+            bool            hasMapKdInitially;
+            my_glm::vec3    originalDiffuseColor;
+            VkBuffer        vertexBuffer;
+            VkDeviceMemory  vertexMemory;
+            VkBuffer        indexBuffer;
+            VkDeviceMemory  indexMemory;
+            uint32_t        indexCount;
+            std::string     textureFile;
+            VkImage         textureImage;
+            VkDeviceMemory  textureMemory;
+            VkImageView     textureImageView;
+            VkSampler       textureSampler;
             VkDescriptorSet descriptorSet;
-            VkBuffer materialBuffer;
-            VkDeviceMemory materialBufferMemory;
+            VkBuffer        materialBuffer;
+            VkDeviceMemory  materialBufferMemory;
         };
 
         struct alignas(16) MaterialUBO {
-            my_glm::vec3 diffuse;
-            float specularExponent;
-            my_glm::vec3 ambient;
-            float dissolve;
-            my_glm::vec3 specular;
-            float refractionIndex;
-            my_glm::vec3 emissive;
-            int illumModel;
-            int useTexture;
+            my_glm::vec3    diffuse;
+            float           specularExponent;
+            my_glm::vec3    ambient;
+            float           dissolve;
+            my_glm::vec3    specular;
+            float           refractionIndex;
+            my_glm::vec3    emissive;
+            int             illumModel;
+            int             useTexture;
         };
         
         std::vector<GpuMesh> gpuMeshes;
 
         GLFWwindow* window = nullptr;
 
-        VkInstance instance = VK_NULL_HANDLE;
-        VkSurfaceKHR surface = VK_NULL_HANDLE;
-        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-        VkDevice device = VK_NULL_HANDLE;
-        VkQueue graphicsQueue = VK_NULL_HANDLE;
-        VkQueue presentQueue = VK_NULL_HANDLE;
+        VkInstance                  instance = VK_NULL_HANDLE;
+        VkSurfaceKHR                 surface = VK_NULL_HANDLE;
+        VkPhysicalDevice             physicalDevice = VK_NULL_HANDLE;
+        VkDevice                     device = VK_NULL_HANDLE;
+        VkQueue                      graphicsQueue = VK_NULL_HANDLE;
+        VkQueue                      presentQueue = VK_NULL_HANDLE;
 
         VkSwapchainKHR swapChain = VK_NULL_HANDLE;
         std::vector<VkImage> swapChainImages;
@@ -115,10 +115,6 @@ class VulkanRenderer {
         VkCommandPool commandPool = VK_NULL_HANDLE;
         std::vector<VkCommandBuffer> commandBuffers;
 
-        VkBuffer vertexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
-        VkBuffer indexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
         VkBuffer uniformBuffer = VK_NULL_HANDLE;
         VkDeviceMemory uniformBufferMemory = VK_NULL_HANDLE;
         VkBuffer fallbackUniformBuffer = VK_NULL_HANDLE;
@@ -128,24 +124,19 @@ class VulkanRenderer {
         VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
-        VkImage textureImage = VK_NULL_HANDLE;
-        VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
-        VkImageView textureImageView = VK_NULL_HANDLE;
-        VkSampler textureSampler = VK_NULL_HANDLE;
-
         VkImage depthImage = VK_NULL_HANDLE;
         VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
         VkImageView depthImageView = VK_NULL_HANDLE;
 
-        float cameraYaw = 0.0f;
-        float cameraPitch = 0.0f;
-        double lastMouseX = 0.0;
-        double lastMouseY = 0.0;
+        float cameraYaw;
+        float cameraPitch;
+        double lastMouseX;
+        double lastMouseY;
         bool leftMousePressed = false;
         int isLightOff = 0;
         int prevLState = GLFW_RELEASE;
         int prevTState = GLFW_RELEASE;
-        my_glm::vec3 modelOffset = my_glm::vec3(0.0f);
+        my_glm::vec3 modelOffset;
 
         int graphicsFamily = -1;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -155,7 +146,7 @@ class VulkanRenderer {
         VkPresentModeKHR presentMode;
         VkExtent2D extent;
 
-        my_glm::vec3 modelRotation = my_glm::vec3(0.0f);
+        my_glm::vec3 modelRotation;
         int lightMode = 0;
         bool textureToggled = false;
         

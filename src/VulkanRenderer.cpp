@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 10:51:50 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/27 11:25:08 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ void VulkanRenderer::cleanup() {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
+    
 
 bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     initWindow();
