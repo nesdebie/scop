@@ -24,3 +24,6 @@ make
 Vulkan Instance Version: 1.3.204
 GLFW3 version : 3.3.6
 ```
+5) Screenshots
+![Capture 1 ](screenshots/scop_polnareff.png)
+![Capture 2](screenshots/scop_dugtrio.png)
