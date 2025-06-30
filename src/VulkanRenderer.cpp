@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 12:06:05 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/30 09:06:59 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ VulkanRenderer::VulkanRenderer() {
 
     this->leftMousePressed = false;
     this->isLightOff = 0;
+    this->appliedTexture = 0;
     this->prevLState = GLFW_RELEASE;
     this->prevTState = GLFW_RELEASE;
 
@@ -942,11 +943,16 @@ void VulkanRenderer::handleInput() {
     prevLState = lState;
 
     int tState = glfwGetKey(window, GLFW_KEY_T);
-    if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE) {
+    if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE)
+        appliedTexture = 1 - appliedTexture;
+    prevTState = tState;
+
+    int pState = glfwGetKey(window, GLFW_KEY_P);
+    if (prevPState == GLFW_PRESS && pState == GLFW_RELEASE) {
         textureToggled = !textureToggled;
         toggleTexture();
     }
-    prevTState = tState;
+    prevPState = pState;
 }
 
 void VulkanRenderer::toggleTexture() {
@@ -1058,7 +1064,8 @@ void VulkanRenderer::updateUniformBuffer() {
     }
     ubo.numLights  = idx;
     ubo.isLightOff = this->isLightOff;
-    ubo._pad1[0]   = ubo._pad1[1] = 0;
+    ubo.tex = appliedTexture;
+    ubo._pad1 = 0;
 
     void* data;
     vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);

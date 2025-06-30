@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 12:06:05 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/30 09:05:28 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,8 +129,10 @@ class VulkanRenderer {
         double lastMouseY;
         bool leftMousePressed;
         int isLightOff;
+        int appliedTexture;
         int prevLState;
         int prevTState;
+        int prevPState;
         my_glm::vec3 modelOffset;
 
         int graphicsFamily;

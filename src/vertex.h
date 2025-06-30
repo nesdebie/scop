@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:49 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:34:07 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/06/30 09:05:26 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,8 @@ struct alignas(16) UniformBufferObject {
 
     int       numLights;                   // offset 480 (4 bytes)
     int       isLightOff;                  // offset 484 (4 bytes)
-    int       _pad1[2];                    // offset 488, 492 (8 bytes)
+    int       tex;                          // offset 488 (4 bytes)
+    int       _pad1;                    // offset 492 (4 bytes)
 };
 
 
