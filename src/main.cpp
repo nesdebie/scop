@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 11:42:49 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 13:21:26 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include "VulkanRenderer.h"
 #include <iostream>
 #include <cfloat>
-
 
 static int giveGoodUsage(char *str){
     std::cerr << "Usage: " << str << " models/<name>.obj" << std::endl;
@@ -58,8 +57,6 @@ static void showControls() {
 
     std::cout << "==============================\n\n";
 }
-
-
 
 
 int main(int ac, char** av) {
