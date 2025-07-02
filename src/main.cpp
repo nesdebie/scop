@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:33:11 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 09:30:43 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,10 +49,11 @@ static void showControls() {
     std::cout << "  - L:               Toggle full material lighting (Kd-only vs. full)\n";
     std::cout << "  - Numpad 0:        Enable all lights\n";
     std::cout << "  - Numpad 9:        Disable all lights\n";
-    std::cout << "  - Numpad 1–8:      Enable only light source [1–8]\n";
+    std::cout << "  - Numpad 1–8:      Enable only one light source [1–8]\n";
 
     std::cout << "\n[Other Controls]\n";
     std::cout << "  - Add Texture:     T\n";
+    std::cout << "  - Add PNG:         P\n";
     std::cout << "  - Exit:            ESC / Q\n";
 
     std::cout << "==============================\n\n";

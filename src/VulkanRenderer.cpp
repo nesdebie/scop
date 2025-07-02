@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/30 09:06:59 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 09:24:56 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,8 @@ VulkanRenderer::VulkanRenderer() {
     this->graphicsFamily = -1;
     this->lightMode = 0;
     this->textureToggled = false;
+
+    this->firstFrameDrawn = false;
 }
 
 VulkanRenderer::~VulkanRenderer() {}
@@ -891,27 +893,39 @@ void VulkanRenderer::run() {
 void VulkanRenderer::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        handleInput();
-        drawFrame();
+        bool keyInteracted = handleInput();
+        drawFrame(keyInteracted);
     }
     vkDeviceWaitIdle(device);
 }
 
 
-void VulkanRenderer::handleInput() {
+bool VulkanRenderer::handleInput() {
+    bool keyInteracted = false;
+
     float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius + 1.0f) * objectRadius / 10.0f;
     
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         cameraYaw -= adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         cameraYaw += adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraPitch += adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         cameraPitch -= adjustedRotation;
+        keyInteracted = true;
+    }
         
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+        keyInteracted = true;
+    }
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         modelOffset = my_glm::vec3(0.0f);
@@ -919,41 +933,60 @@ void VulkanRenderer::handleInput() {
         cameraPitch = 0.0f;
         cameraDistance = objectRadius * 2.2f;
         modelRotation = my_glm::vec3(0.0f);
+        keyInteracted = true;
     }
 
     cameraPitch = my_glm::clamp(cameraPitch, -my_glm::half_pi() + 0.01f, my_glm::half_pi() - 0.01f);
 
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
         modelRotation.x -= adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         modelRotation.x += adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         modelRotation.y -= adjustedRotation;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        keyInteracted = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         modelRotation.y += adjustedRotation;
+        keyInteracted = true;
+    }
+
     for (int key = GLFW_KEY_KP_0; key <= GLFW_KEY_KP_9; ++key) {
         if (glfwGetKey(window, key) == GLFW_PRESS) {
             lightMode = key - GLFW_KEY_KP_0;
+            keyInteracted = true;
         }
     }
 
     int lState = glfwGetKey(window, GLFW_KEY_L);
-    if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE)
+    if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE) {
         isLightOff = 1 - isLightOff;
+        keyInteracted = true;
+    }
     prevLState = lState;
 
     int tState = glfwGetKey(window, GLFW_KEY_T);
-    if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE)
+    if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE) {
         appliedTexture = 1 - appliedTexture;
+        keyInteracted = true;
+    }
     prevTState = tState;
 
     int pState = glfwGetKey(window, GLFW_KEY_P);
     if (prevPState == GLFW_PRESS && pState == GLFW_RELEASE) {
         textureToggled = !textureToggled;
         toggleTexture();
+        keyInteracted = true;
     }
     prevPState = pState;
+
+    return keyInteracted;
 }
+
 
 void VulkanRenderer::toggleTexture() {
     for (auto& mesh : gpuMeshes) {
@@ -999,8 +1032,11 @@ void VulkanRenderer::destroyDescriptorPool() {
 }
 
 
-void VulkanRenderer::drawFrame() {
+void VulkanRenderer::drawFrame(bool keyInteracted) {
+    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
 
+    if (!keyInteracted && !renderer->leftMousePressed & firstFrameDrawn)
+        return;
     updateUniformBuffer();
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &imageIndex);
@@ -1022,6 +1058,7 @@ void VulkanRenderer::drawFrame() {
 
     vkQueuePresentKHR(presentQueue, &presentInfo);
     vkQueueWaitIdle(presentQueue);
+    firstFrameDrawn = true;
 }
 
 

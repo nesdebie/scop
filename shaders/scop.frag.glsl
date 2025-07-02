@@ -59,13 +59,15 @@ void main() {
         ? texture(texSampler, fragTexCoord).rgb
         : material.diffuse;
 
-    // **Lighting disabled** (isLightOff == 0)
+    // Texture disabled
+    if (ubo.tex == 0) {
+        outColor = vec4(hashColor(gl_PrimitiveID), material.dissolve);
+        return;
+    }
+
+    // Light effects disabled
     if (ubo.isLightOff == 0) {
-        if (ubo.tex != 0) {
             outColor = vec4(baseColor, material.dissolve);
-        } else {
-            outColor = vec4(hashColor(gl_PrimitiveID), material.dissolve);
-        }
         return;
     }
 

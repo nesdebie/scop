@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/30 09:05:28 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 09:22:17 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,6 +134,7 @@ class VulkanRenderer {
         int prevTState;
         int prevPState;
         my_glm::vec3 modelOffset;
+        bool firstFrameDrawn;
 
         int graphicsFamily;
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -149,8 +150,8 @@ class VulkanRenderer {
         
         void initWindow();
         void mainLoop();
-        void handleInput();
-        void drawFrame();
+        bool handleInput();
+        void drawFrame(bool keyInteracted);
         void updateUniformBuffer();
         void toggleTexture();
         void prepareTexture(const std::string& textureFilePath);
