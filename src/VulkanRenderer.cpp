@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 11:04:12 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 11:57:16 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ VulkanRenderer::VulkanRenderer() {
     this->textureToggled = false;
 
     this->firstFrameDrawn = false;
+    this->keyInteracted = false;
 }
 
 VulkanRenderer::~VulkanRenderer() {}
@@ -148,8 +149,9 @@ void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double y
 
         renderer->modelOffset += forward * static_cast<float>(yoffset) * 0.5f;
     } else {
-        renderer->cameraDistance -= static_cast<float>(yoffset) * 0.1f;
+        renderer->cameraDistance -= static_cast<float>(yoffset + 0.1f) * 0.1f;
         renderer->cameraDistance = my_glm::clamp(renderer->cameraDistance, 0.5f, 20.0f);
+        renderer->keyInteracted = true;
     }
 }
 
@@ -192,14 +194,15 @@ void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double y
 
 
 my_glm::mat4 VulkanRenderer::computeViewMatrix() const {
-    my_glm::vec3 cameraPos = {
+    my_glm::vec3 cameraOffset = {
         cameraDistance * std::cos(cameraPitch) * std::sin(cameraYaw),
         cameraDistance * std::sin(cameraPitch),
         cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
     };
-    return my_glm::lookAt(cameraPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
-
+    my_glm::vec3 cameraPos = modelOffset + cameraOffset;  // orbiting around modelOffset
+    return my_glm::lookAt(cameraPos, modelOffset, {0.0f, 1.0f, 0.0f});
 }
+
 
 
 
@@ -894,16 +897,14 @@ void VulkanRenderer::run() {
 void VulkanRenderer::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        bool keyInteracted = handleInput();
-        drawFrame(keyInteracted);
+        handleInput();
+        drawFrame();
     }
     vkDeviceWaitIdle(device);
 }
 
 
-bool VulkanRenderer::handleInput() {
-    bool keyInteracted = false;
-
+void VulkanRenderer::handleInput() {
     float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius + 1.0f) * objectRadius / 10.0f;
     
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
@@ -941,7 +942,7 @@ bool VulkanRenderer::handleInput() {
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
         modelRotation.x -= adjustedRotation;
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         modelRotation.x += adjustedRotation;
@@ -949,31 +950,31 @@ bool VulkanRenderer::handleInput() {
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
         modelRotation.y -= adjustedRotation;
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
         modelRotation.y += adjustedRotation;
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
 
     for (int key = GLFW_KEY_KP_0; key <= GLFW_KEY_KP_9; ++key) {
         if (glfwGetKey(window, key) == GLFW_PRESS) {
             lightMode = key - GLFW_KEY_KP_0;
-            keyInteracted = true;
+            this->keyInteracted = true;
         }
     }
 
     int lState = glfwGetKey(window, GLFW_KEY_L);
     if (prevLState == GLFW_PRESS && lState == GLFW_RELEASE) {
         isLightOff = 1 - isLightOff;
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
     prevLState = lState;
 
     int tState = glfwGetKey(window, GLFW_KEY_T);
     if (prevTState == GLFW_PRESS && tState == GLFW_RELEASE) {
         appliedTexture = 1 - appliedTexture;
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
     prevTState = tState;
 
@@ -981,11 +982,9 @@ bool VulkanRenderer::handleInput() {
     if (prevPState == GLFW_PRESS && pState == GLFW_RELEASE) {
         textureToggled = !textureToggled;
         toggleTexture();
-        keyInteracted = true;
+        this->keyInteracted = true;
     }
     prevPState = pState;
-
-    return keyInteracted;
 }
 
 
@@ -1032,11 +1031,10 @@ void VulkanRenderer::destroyDescriptorPool() {
     }
 }
 
-
-void VulkanRenderer::drawFrame(bool keyInteracted) {
+void VulkanRenderer::drawFrame() {
     auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
 
-    if (!keyInteracted && !renderer->leftMousePressed & firstFrameDrawn)
+    if (!this->keyInteracted && !renderer->leftMousePressed & firstFrameDrawn)
         return;
     updateUniformBuffer();
     uint32_t imageIndex;
@@ -1059,6 +1057,7 @@ void VulkanRenderer::drawFrame(bool keyInteracted) {
     vkQueuePresentKHR(presentQueue, &presentInfo);
     vkQueueWaitIdle(presentQueue);
     firstFrameDrawn = true;
+    this->keyInteracted = false;
 }
 
 
@@ -1078,7 +1077,10 @@ void VulkanRenderer::updateUniformBuffer() {
         cameraDistance * std::sin(cameraPitch),
         cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
     };
-    ubo.view      = my_glm::lookAt(cameraPos, objectCenter, {0,1,0});
+    cameraPos += objectCenter;  // camera orbits around modelOffset
+
+    ubo.view = my_glm::lookAt(cameraPos, objectCenter, {0,1,0});
+
     ubo.proj      = my_glm::perspective(
                        my_glm::radians(45.0f),
                        float(swapChainExtent.width) / swapChainExtent.height,

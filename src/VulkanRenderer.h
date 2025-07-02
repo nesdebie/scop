@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 11:04:21 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 11:54:00 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,11 +146,12 @@ class VulkanRenderer {
         my_glm::vec3 modelRotation;
         int lightMode;
         bool textureToggled;
+        bool keyInteracted;
         
         void initWindow();
         void mainLoop();
-        bool handleInput();
-        void drawFrame(bool keyInteracted);
+        void handleInput();
+        void drawFrame();
         void updateUniformBuffer();
         void toggleTexture();
         void prepareTexture(const std::string& textureFilePath);
