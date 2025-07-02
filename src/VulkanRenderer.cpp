@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 09:24:56 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 11:04:12 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,8 @@ my_glm::mat4 VulkanRenderer::computeViewMatrix() const {
         cameraDistance * std::sin(cameraPitch),
         cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
     };
-    return my_glm::lookAt(cameraPos, objectCenter, {0.0f, 1.0f, 0.0f});
+    return my_glm::lookAt(cameraPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+
 }
 
 
@@ -1053,7 +1054,6 @@ void VulkanRenderer::drawFrame(bool keyInteracted) {
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &swapChain;
     presentInfo.pImageIndices = &imageIndex;
-    presentInfo.waitSemaphoreCount = 0; // (no semaphores used yet)
     presentInfo.pWaitSemaphores = nullptr;
 
     vkQueuePresentKHR(presentQueue, &presentInfo);
@@ -1070,6 +1070,8 @@ void VulkanRenderer::updateUniformBuffer() {
     ubo.model = my_glm::rotate(ubo.model, modelRotation.y, my_glm::vec3(0,1,0));
     ubo.model = my_glm::rotate(ubo.model, modelRotation.z, my_glm::vec3(0,0,1));
     ubo.model = my_glm::translate(ubo.model, modelOffset);
+    
+    my_glm::vec3 objectCenter = {0.0f, 0.0f, 0.0f};
 
     my_glm::vec3 cameraPos = {
         cameraDistance * std::cos(cameraPitch) * std::sin(cameraYaw),

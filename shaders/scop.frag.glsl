@@ -38,7 +38,7 @@ layout(location = 1) in vec2  fragTexCoord;
 layout(location = 2) in vec3  fragWorldPos;
 layout(location = 0) out vec4 outColor;
 
-// Hash a uint to a vec3 RGB (range 0–1)
+// Hash a uint to a grayscale color (same value for R, G, B)
 vec3 hashColor(uint id) {
     // Xorshift-style hash
     id = (id ^ 61u) ^ (id >> 16);
@@ -47,12 +47,11 @@ vec3 hashColor(uint id) {
     id *= 0x27d4eb2du;
     id = id ^ (id >> 15);
 
-    // Map to color
-    float r = float((id & 0xFFu))       / 255.0;
-    float g = float((id >> 8u) & 0xFFu) / 255.0;
-    float b = float((id >> 16u) & 0xFFu)/ 255.0;
-    return vec3(r, g, b);
+    // Map to grayscale: extract 8 bits and normalize
+    float gray = float(id & 0xFFu) / 255.0;
+    return vec3(gray);
 }
+
 
 void main() {
     vec3 baseColor = (material.useTexture == 1)

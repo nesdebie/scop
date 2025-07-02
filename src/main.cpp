@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 09:30:43 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 10:58:33 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,12 +79,17 @@ int main(int ac, char** av) {
         }
     }
     my_glm::vec3 center = 0.5f * (minBounds + maxBounds);
+    for (auto& sub : submeshes) {
+        for (auto& v : sub.vertices) {
+            v.position -= center;
+        }
+    }
     my_glm::vec3 size = maxBounds - minBounds;
 
 
     float radius = my_glm::length(size) * 0.5f;
     VulkanRenderer renderer;
-    renderer.objectCenter = center;
+    //renderer.objectCenter = center;
     renderer.objectRadius = radius;
     renderer.cameraDistance = radius * 2.2f;
 

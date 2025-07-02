@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:55 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/27 09:36:05 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 10:54:59 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,11 @@ namespace my_glm {
 
         vec3& operator+=(const vec3& o) {
             x += o.x; y += o.y; z += o.z;
+            return *this;
+        }
+
+        vec3& operator-=(const vec3& o) {
+            x -= o.x; y -= o.y; z -= o.z;
             return *this;
         }
 

@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 09:22:17 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/02 11:04:21 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ class VulkanRenderer {
         void run();
         void cleanup();
 
-        my_glm::vec3    objectCenter;
         float           objectRadius;
         float           cameraDistance;
 
