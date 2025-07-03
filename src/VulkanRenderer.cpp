@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/03 09:22:09 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/03 11:07:55 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,23 +59,61 @@ VulkanRenderer::VulkanRenderer() {
 
 VulkanRenderer::~VulkanRenderer() {}
 
+
 void VulkanRenderer::cleanup() {
     vkDeviceWaitIdle(device);
     for (auto& mesh : gpuMeshes) {
-        vkDestroySampler(device, mesh.textureSampler, nullptr);
-        vkDestroyImageView(device, mesh.textureImageView, nullptr);
-        vkDestroyImage(device, mesh.textureImage, nullptr);
-        vkFreeMemory(device, mesh.textureMemory, nullptr);
+        if (mesh.textureSampler != VK_NULL_HANDLE) {
+            vkDestroySampler(device, mesh.textureSampler, nullptr);
+            mesh.textureSampler = VK_NULL_HANDLE;
+        }
 
-        vkDestroyBuffer(device, mesh.vertexBuffer, nullptr);
-        vkFreeMemory(device, mesh.vertexMemory, nullptr);
+        if (mesh.textureImageView != VK_NULL_HANDLE) {
+            vkDestroyImageView(device, mesh.textureImageView, nullptr);
+            mesh.textureImageView = VK_NULL_HANDLE;
+        }
 
-        vkDestroyBuffer(device, mesh.indexBuffer, nullptr);
-        vkFreeMemory(device, mesh.indexMemory, nullptr);
+        if (mesh.textureImage != VK_NULL_HANDLE) {
+            vkDestroyImage(device, mesh.textureImage, nullptr);
+            mesh.textureImage = VK_NULL_HANDLE;
+        }
 
-        vkDestroyBuffer(device, mesh.materialBuffer, nullptr);
-        vkFreeMemory(device, mesh.materialBufferMemory, nullptr);
+        if (mesh.textureMemory != VK_NULL_HANDLE) {
+            vkFreeMemory(device, mesh.textureMemory, nullptr);
+            mesh.textureMemory = VK_NULL_HANDLE;
+        }
+
+        if (mesh.vertexBuffer != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, mesh.vertexBuffer, nullptr);
+            mesh.vertexBuffer = VK_NULL_HANDLE;
+        }
+
+        if (mesh.vertexMemory != VK_NULL_HANDLE) {
+            vkFreeMemory(device, mesh.vertexMemory, nullptr);
+            mesh.vertexMemory = VK_NULL_HANDLE;
+        }
+
+        if (mesh.indexBuffer != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, mesh.indexBuffer, nullptr);
+            mesh.indexBuffer = VK_NULL_HANDLE;
+        }
+
+        if (mesh.indexMemory != VK_NULL_HANDLE) {
+            vkFreeMemory(device, mesh.indexMemory, nullptr);
+            mesh.indexMemory = VK_NULL_HANDLE;
+        }
+
+        if (mesh.materialBuffer != VK_NULL_HANDLE) {
+            vkDestroyBuffer(device, mesh.materialBuffer, nullptr);
+            mesh.materialBuffer = VK_NULL_HANDLE;
+        }
+
+        if (mesh.materialBufferMemory != VK_NULL_HANDLE) {
+            vkFreeMemory(device, mesh.materialBufferMemory, nullptr);
+            mesh.materialBufferMemory = VK_NULL_HANDLE;
+        }
     }
+
     gpuMeshes.clear();
 
     vkDestroyBuffer(device, uniformBuffer, nullptr);
@@ -96,7 +134,6 @@ void VulkanRenderer::cleanup() {
         vkDestroyImageView(device, imageView, nullptr);
     }
     swapChainImageViews.clear();
-
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     vkDestroyRenderPass(device, renderPass, nullptr);
@@ -145,7 +182,10 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
         mesh.textureFile = pkg.textureFile;
         mesh.hasMapKdInitially = pkg.hasMapKdInitially;
         mesh.originalDiffuseColor = pkg.diffuseColor;
-
+        mesh.textureImageView = VK_NULL_HANDLE;
+        mesh.textureSampler = VK_NULL_HANDLE;
+        mesh.textureMemory = VK_NULL_HANDLE;
+        mesh.textureImage = VK_NULL_HANDLE;
         createVertexBuffer(pkg.vertices, mesh.vertexBuffer, mesh.vertexMemory);
         createIndexBuffer(pkg.indices, mesh.indexBuffer, mesh.indexMemory);
         if (!pkg.textureFile.empty())
