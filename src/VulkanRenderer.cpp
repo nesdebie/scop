@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/03 09:08:26 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/03 09:22:09 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,6 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     createGraphicsPipeline();
     createUniformBuffer();
     createFallbackUniformBuffer();
-    createDescriptorSetLayout();
 
     for (const auto& pkg : meshPackages) {
         GpuMesh mesh;

@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 13:21:26 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/03 09:18:36 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,8 +94,10 @@ int main(int ac, char** av) {
         meshPackages.push_back({sub.vertices, sub.indices, sub.textureFile, sub.diffuseColor, sub.hasMapKdInitially});
     }
 
-    if (!renderer.init(meshPackages)) 
+    if (!renderer.init(meshPackages))  {
+        renderer.cleanup();
         return failure(2);
+    }
 
     showControls();
     renderer.run();
