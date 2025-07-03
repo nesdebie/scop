@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/02 11:57:16 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/07/03 09:08:26 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,14 +60,65 @@ VulkanRenderer::VulkanRenderer() {
 VulkanRenderer::~VulkanRenderer() {}
 
 void VulkanRenderer::cleanup() {
+    vkDeviceWaitIdle(device);
+    for (auto& mesh : gpuMeshes) {
+        vkDestroySampler(device, mesh.textureSampler, nullptr);
+        vkDestroyImageView(device, mesh.textureImageView, nullptr);
+        vkDestroyImage(device, mesh.textureImage, nullptr);
+        vkFreeMemory(device, mesh.textureMemory, nullptr);
+
+        vkDestroyBuffer(device, mesh.vertexBuffer, nullptr);
+        vkFreeMemory(device, mesh.vertexMemory, nullptr);
+
+        vkDestroyBuffer(device, mesh.indexBuffer, nullptr);
+        vkFreeMemory(device, mesh.indexMemory, nullptr);
+
+        vkDestroyBuffer(device, mesh.materialBuffer, nullptr);
+        vkFreeMemory(device, mesh.materialBufferMemory, nullptr);
+    }
+    gpuMeshes.clear();
+
+    vkDestroyBuffer(device, uniformBuffer, nullptr);
+    vkFreeMemory(device, uniformBufferMemory, nullptr);
+    vkDestroyBuffer(device, fallbackUniformBuffer, nullptr);
+    vkFreeMemory(device, fallbackUniformBufferMemory, nullptr);
+
+    vkDestroyImageView(device, depthImageView, nullptr);
+    vkDestroyImage(device, depthImage, nullptr);
+    vkFreeMemory(device, depthImageMemory, nullptr);
+
+    for (auto framebuffer : swapChainFrameBuffers) {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+    swapChainFrameBuffers.clear();
+
+    for (auto imageView : swapChainImageViews) {
+        vkDestroyImageView(device, imageView, nullptr);
+    }
+    swapChainImageViews.clear();
+
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    vkDestroyRenderPass(device, renderPass, nullptr);
+
+    destroyDescriptorPool();
+    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+
+    if (!commandBuffers.empty()) {
+        vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+        commandBuffers.clear();
+    }
+
+    vkDestroyCommandPool(device, commandPool, nullptr);
     vkDestroySwapchainKHR(device, swapChain, nullptr);
     vkDestroyDevice(device, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
-
     glfwDestroyWindow(window);
     glfwTerminate();
 }
+
+
     
 
 bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
