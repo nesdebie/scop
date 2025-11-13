@@ -21,20 +21,20 @@ static bool isValidOBJFilename(const std::string& filename) {
     return !(filename.empty() || !ends_with(filename, ".obj") || ends_with(filename, "/.obj") || filename.size() == 4);
 }
 
-static void parseVertexLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_positions) {
+static void parseVerticesLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_positions) {
     my_glm::vec3 pos;
     iss >> pos.x >> pos.y >> pos.z;
     temp_positions.push_back(pos);
 }
 
-static void parseTexcoordLine(std::istringstream& iss, std::vector<my_glm::vec2>& temp_texcoords) {
+static void parseTextureCoordinatesLine(std::istringstream& iss, std::vector<my_glm::vec2>& temp_texcoords) {
     my_glm::vec2 uv;
     iss >> uv.x >> uv.y;
     uv.y = 1.0f - uv.y;
     temp_texcoords.push_back(uv);
 }
 
-static void parseNormalLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_normals) {
+static void parseVertexNormalLine(std::istringstream& iss, std::vector<my_glm::vec3>& temp_normals) {
     my_glm::vec3 normal;
     iss >> normal.x >> normal.y >> normal.z;
     temp_normals.push_back(normal);
@@ -115,9 +115,9 @@ bool loadOBJ(const std::string& filename, std::vector<SubMesh>& submeshes) {
         std::string prefix;
         iss >> prefix;
 
-        if (prefix == "v") parseVertexLine(iss, temp_positions);
-        else if (prefix == "vt") parseTexcoordLine(iss, temp_texcoords);
-        else if (prefix == "vn") parseNormalLine(iss, temp_normals);
+        if (prefix == "v") parseVerticesLine(iss, temp_positions);
+        else if (prefix == "vt") parseTextureCoordinatesLine(iss, temp_texcoords);
+        else if (prefix == "vn") parseVertexNormalLine(iss, temp_normals);
         else if (prefix == "mtllib") {
             iss >> mtlFilename;
             std::ifstream mtl("models/" + mtlFilename);

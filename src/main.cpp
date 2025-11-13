@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/03 09:18:36 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/11/13 11:10:06 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,9 +63,8 @@ int main(int ac, char** av) {
     if (ac != 2)
         return giveGoodUsage(av[0]);
 
-    const char* objPath = av[1];
     std::vector<SubMesh> submeshes;
-    if (!loadOBJ(objPath, submeshes))
+    if (!loadOBJ(av[1], submeshes))
         return failure(1);
 
     my_glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
