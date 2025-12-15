@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 13:09:53 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/11/13 11:10:06 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/15 12:32:47 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,24 @@
 #include <iostream>
 #include <cfloat>
 
-static int giveGoodUsage(char *str){
+static int printCorrectUsage(char *str){
     std::cerr << "Usage: " << str << " models/<name>.obj" << std::endl;
-    return -1;  
+    return 1;  
 }
 
 static int failure(int value) {
     switch(value) {
-        case 1:
+        case INVALID_OBJ_FILE_ERROR:
             std::cerr << "Error: Invalid OBJ file." << std::endl;
             break;
-        case 2:
+        case VULKAN_RENDERER_ERROR:
             std::cerr << "Error: Failed to initialize Vulkan Renderer." << std::endl;
             break;
     }
-    return -1;
+    return 0;
 }
 
-static void showControls() {
+static void printControls() {
     std::cout << "\n========== CONTROLS ==========\n";
 
     std::cout << "\n[Camera Controls]\n";
@@ -61,11 +61,11 @@ static void showControls() {
 
 int main(int ac, char** av) {
     if (ac != 2)
-        return giveGoodUsage(av[0]);
+        return printCorrectUsage(av[0]);
 
     std::vector<SubMesh> submeshes;
     if (!loadOBJ(av[1], submeshes))
-        return failure(1);
+        return failure(INVALID_OBJ_FILE_ERROR);
 
     my_glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
     for (const auto& sub : submeshes) {
@@ -95,10 +95,10 @@ int main(int ac, char** av) {
 
     if (!renderer.init(meshPackages))  {
         renderer.cleanup();
-        return failure(2);
+        return failure(VULKAN_RENDERER_ERROR);
     }
 
-    showControls();
+    printControls();
     renderer.run();
     renderer.cleanup();
     return 0;

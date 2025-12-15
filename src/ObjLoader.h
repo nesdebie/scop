@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:30:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/06/16 09:33:14 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/15 12:31:14 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 # include <iostream>
 # include <unordered_map>
 # include <map>
+
+# define INVALID_OBJ_FILE_ERROR 1
+# define VULKAN_RENDERER_ERROR 2
 
 struct SubMesh {
     std::vector<Vertex> vertices;
