@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/16 09:33:21 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/07/03 08:51:36 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/16 00:00:00 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,19 +17,23 @@
 #include <string>
 #include <array>
 #include <stdexcept>
-#include <fstream>
 #include <cstring>
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
 #include "vertex.h"
+#include "VulkanDevice.h"
+#include "VulkanSwapchain.h"
+#include "VulkanPipeline.h"
+#include "VulkanBuffer.h"
+#include "VulkanTexture.h"
+#include "Camera.h"
+#include "InputHandler.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1440
 #define WINDOW_DEPTH 42.0f
-#define ROTATION_SPEED 0.01f
 
 class VulkanRenderer {
     public:
@@ -91,20 +95,16 @@ class VulkanRenderer {
 
         VkInstance          instance;
         VkSurfaceKHR        surface;
-        VkPhysicalDevice    physicalDevice;
-        VkDevice            device;
-        VkQueue             graphicsQueue;
-        VkQueue             presentQueue;
-
-        VkSwapchainKHR swapChain;
-        std::vector<VkImage> swapChainImages;
-        VkFormat swapChainImageFormat;
-        VkExtent2D swapChainExtent;
+        
+        VulkanDevice        vulkanDevice;
+        VulkanSwapchain     vulkanSwapchain;
+        VulkanPipeline      vulkanPipeline;
+        VulkanBuffer        vulkanBuffer;
+        VulkanTexture       vulkanTexture;
+        Camera              camera;
+        InputHandler        inputHandler;
 
         VkRenderPass renderPass;
-        VkPipelineLayout pipelineLayout;
-        VkPipeline graphicsPipeline;
-        std::vector<VkImageView> swapChainImageViews;
         std::vector<VkFramebuffer> swapChainFrameBuffers;
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffers;
@@ -114,34 +114,15 @@ class VulkanRenderer {
         VkBuffer fallbackUniformBuffer;
         VkDeviceMemory fallbackUniformBufferMemory;
 
-        VkDescriptorSetLayout descriptorSetLayout;
         VkDescriptorPool descriptorPool;
-        VkDescriptorSet descriptorSet;
 
         VkImage depthImage;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;
 
-        float cameraYaw;
-        float cameraPitch;
-        double lastMouseX;
-        double lastMouseY;
-        bool leftMousePressed;
         int isLightOff;
         int appliedTexture;
-        int prevLState;
-        int prevTState;
-        int prevPState;
-        my_glm::vec3 modelOffset;
         bool firstFrameDrawn;
-
-        int graphicsFamily;
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        std::vector<VkSurfaceFormatKHR> surfaceFormats;
-        std::vector<VkPresentModeKHR> presentModes;
-        VkSurfaceFormatKHR surfaceFormat;
-        VkPresentModeKHR presentMode;
-        VkExtent2D extent;
 
         my_glm::vec3 modelRotation;
         int lightMode;
@@ -154,52 +135,24 @@ class VulkanRenderer {
         void drawFrame();
         void updateUniformBuffer();
         void toggleTexture();
-        void prepareTexture(const std::string& textureFilePath);
 
         /* VULKAN INIT HELPER FUNCTIONS */
         void createInstance();
         void createSurface();
-        void pickPhysicalDevice();
-        void findQueueFamilies();
-        void createLogicalDevice();
         void createCommandPool();
-        void querySwapchainSupport();
-        void chooseSwapchainDetails();
-        void createSwapchain();
-        void createImageViews();
         void createRenderPass();
-        void createGraphicsPipeline();
         void createFramebuffers();
         void createCommandBuffers();
-        void createVertexBuffer(const std::vector<Vertex>& vertices, VkBuffer& buffer, VkDeviceMemory& memory);
-        void createIndexBuffer(const std::vector<uint32_t>& indices, VkBuffer& buffer, VkDeviceMemory& memory);
         void createUniformBuffer();
-        void createDescriptorSetLayout();
         void createDescriptorPool();
         void createDescriptorSet(GpuMesh & mesh);
-        void createTextureImage(const std::string& path, VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler);
-        void createFallbackWhiteTexture(VkImage& image, VkDeviceMemory& memory, VkImageView& view, VkSampler& sampler);
         void createFallbackUniformBuffer();
         void createDepthResources();
-
-        VkImageView createImageView(VkImage image, VkFormat format);
-
-        void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                        VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-        void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                        VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-                        VkImage& image, VkDeviceMemory& imageMemory);
-        void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
-        void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
         static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
         static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
         static void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
 
-        std::vector<char> readFile(const std::string& filename);
-        VkShaderModule createShaderModule(const std::vector<char>& code);
-        uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
         void destroyDescriptorPool();
-        my_glm::mat4 computeViewMatrix() const;
 };
 #endif
