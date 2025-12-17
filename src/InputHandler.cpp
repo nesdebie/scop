@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/16 00:00:00 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/12/16 00:00:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/17 09:41:40 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,9 +116,13 @@ void InputHandler::handleKeyboard(GLFWwindow* window, Camera& camera, float obje
     prevPState = pState;
 }
 
-void InputHandler::handleMouseButton(int button, int action) {
+void InputHandler::handleMouseButton(int button, int action, double xpos, double ypos) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         leftMousePressed = (action == GLFW_PRESS);
+        if (action == GLFW_PRESS) {
+            lastMouseX = xpos;
+            lastMouseY = ypos;
+        }
     }
 }
 

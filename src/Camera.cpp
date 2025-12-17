@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/16 00:00:00 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/12/16 00:00:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/17 09:38:17 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,8 @@ my_glm::mat4 Camera::computeViewMatrix() const {
         cameraDistance * std::sin(cameraPitch),
         cameraDistance * std::cos(cameraPitch) * std::cos(cameraYaw)
     };
-    my_glm::vec3 cameraPos = modelOffset + cameraOffset;
-    return my_glm::lookAt(cameraPos, modelOffset, {0.0f, 1.0f, 0.0f});
+    my_glm::vec3 cameraPos = cameraOffset;
+    return my_glm::lookAt(cameraPos, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
 }
 
 my_glm::vec3 Camera::getCameraPosition() const {

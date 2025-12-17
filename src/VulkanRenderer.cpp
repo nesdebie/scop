@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 08:37:14 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/12/16 00:00:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/17 09:41:40 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,7 +198,9 @@ void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double y
 void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int /*mods*/) {
     auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
     if (!renderer) return;
-    renderer->inputHandler.handleMouseButton(button, action);
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    renderer->inputHandler.handleMouseButton(button, action, xpos, ypos);
 }
 
 void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {

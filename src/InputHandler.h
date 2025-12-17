@@ -6,7 +6,7 @@
 /*   By: nesdebie <nesdebie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/16 00:00:00 by nesdebie          #+#    #+#             */
-/*   Updated: 2025/12/16 00:00:00 by nesdebie         ###   ########.fr       */
+/*   Updated: 2025/12/17 09:41:40 by nesdebie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class InputHandler {
                            int& isLightOff, int& appliedTexture, bool& textureToggled,
                            bool& keyInteracted);
 
-        void handleMouseButton(int button, int action);
+        void handleMouseButton(int button, int action, double xpos, double ypos);
         void handleMouseMove(double xpos, double ypos, Camera& camera);
         void handleScroll(double yoffset, Camera& camera, bool& keyInteracted);
 
