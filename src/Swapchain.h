@@ -5,10 +5,10 @@
 #include <vector>
 #include <stdexcept>
 
-class VulkanSwapchain {
+class Swapchain {
     public:
-        VulkanSwapchain();
-        ~VulkanSwapchain();
+        Swapchain();
+        ~Swapchain();
 
         void init(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, int graphicsFamily);
         void cleanup(VkDevice device);

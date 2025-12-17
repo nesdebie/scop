@@ -1,4 +1,4 @@
-#include "VulkanRenderer.h"
+#include "Renderer.h"
 
 void vkCheck(VkResult result, const char* msg) {
     if (result != VK_SUCCESS) {
@@ -6,7 +6,7 @@ void vkCheck(VkResult result, const char* msg) {
     }
 }
 
-VulkanRenderer::VulkanRenderer() {
+Renderer::Renderer() {
     this->instance = VK_NULL_HANDLE;
     this->surface = VK_NULL_HANDLE;
     this->renderPass = VK_NULL_HANDLE;
@@ -27,9 +27,9 @@ VulkanRenderer::VulkanRenderer() {
     this->keyInteracted = false;
 }
 
-VulkanRenderer::~VulkanRenderer() {}
+Renderer::~Renderer() {}
 
-void VulkanRenderer::cleanup() {
+void Renderer::cleanup() {
     vkDeviceWaitIdle(vulkanDevice.getDevice());
     
     for (auto& mesh : gpuMeshes) {
@@ -100,7 +100,7 @@ void VulkanRenderer::cleanup() {
     glfwTerminate();
 }
 
-bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
+bool Renderer::init(const std::vector<MeshPackage>& meshPackages) {
     initWindow();
     createInstance();
     createSurface();
@@ -166,7 +166,7 @@ bool VulkanRenderer::init(const std::vector<MeshPackage>& meshPackages) {
     return true;
 }
 
-void VulkanRenderer::initWindow() {
+void Renderer::initWindow() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "scop is dope", nullptr, nullptr);
@@ -176,28 +176,28 @@ void VulkanRenderer::initWindow() {
     glfwSetCursorPosCallback(window, mouseMoveCallback);
 }
 
-void VulkanRenderer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+void Renderer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     (void)xoffset;
-    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+    auto* renderer = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
     if (!renderer) return;
     renderer->inputHandler.handleScroll(yoffset, renderer->camera, renderer->keyInteracted);
 }
 
-void VulkanRenderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int /*mods*/) {
-    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+void Renderer::mouseButtonCallback(GLFWwindow* window, int button, int action, int /*mods*/) {
+    auto* renderer = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
     if (!renderer) return;
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
     renderer->inputHandler.handleMouseButton(button, action, xpos, ypos);
 }
 
-void VulkanRenderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
-    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+void Renderer::mouseMoveCallback(GLFWwindow* window, double xpos, double ypos) {
+    auto* renderer = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
     if (!renderer) return;
     renderer->inputHandler.handleMouseMove(xpos, ypos, renderer->camera);
 }
 
-void VulkanRenderer::createInstance() {
+void Renderer::createInstance() {
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "OBJ Viewer";
@@ -218,12 +218,12 @@ void VulkanRenderer::createInstance() {
     vkCheck(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create Vulkan instance!");
 }
 
-void VulkanRenderer::createSurface() {
+void Renderer::createSurface() {
     if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
         throw std::runtime_error("Failed to create window surface!");
 }
 
-void VulkanRenderer::createCommandPool() {
+void Renderer::createCommandPool() {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = vulkanDevice.getGraphicsFamily();
@@ -232,7 +232,7 @@ void VulkanRenderer::createCommandPool() {
             "Failed to create command pool!");
 }
 
-void VulkanRenderer::createDepthResources() {
+void Renderer::createDepthResources() {
     VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
     vulkanTexture.createImage(vulkanDevice.getDevice(), vulkanDevice.getPhysicalDevice(),
                              vulkanSwapchain.getExtent().width, vulkanSwapchain.getExtent().height,
@@ -246,7 +246,7 @@ void VulkanRenderer::createDepthResources() {
                                         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-void VulkanRenderer::createRenderPass() {
+void Renderer::createRenderPass() {
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = vulkanSwapchain.getImageFormat();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -293,7 +293,7 @@ void VulkanRenderer::createRenderPass() {
             "Failed to create render pass!");
 }
 
-void VulkanRenderer::createUniformBuffer() {
+void Renderer::createUniformBuffer() {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
     vulkanBuffer.createBuffer(vulkanDevice.getDevice(), vulkanDevice.getPhysicalDevice(),
@@ -302,7 +302,7 @@ void VulkanRenderer::createUniformBuffer() {
                              uniformBuffer, uniformBufferMemory);
 }
 
-void VulkanRenderer::createFallbackUniformBuffer() {
+void Renderer::createFallbackUniformBuffer() {
     int flag = 1;
     VkDeviceSize bufferSize = sizeof(int);
     vulkanBuffer.createBuffer(vulkanDevice.getDevice(), vulkanDevice.getPhysicalDevice(),
@@ -315,7 +315,7 @@ void VulkanRenderer::createFallbackUniformBuffer() {
     vkUnmapMemory(vulkanDevice.getDevice(), fallbackUniformBufferMemory);
 }
 
-void VulkanRenderer::createDescriptorPool() {
+void Renderer::createDescriptorPool() {
     uint32_t meshCount = static_cast<uint32_t>(gpuMeshes.size());
     std::array<VkDescriptorPoolSize, 3> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -335,7 +335,7 @@ void VulkanRenderer::createDescriptorPool() {
             "Failed to create descriptor pool!");
 }
 
-void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
+void Renderer::createDescriptorSet(GpuMesh& mesh) {
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool;
@@ -389,7 +389,7 @@ void VulkanRenderer::createDescriptorSet(GpuMesh& mesh) {
                           writes.data(), 0, nullptr);
 }
 
-void VulkanRenderer::createFramebuffers() {
+void Renderer::createFramebuffers() {
     const std::vector<VkImageView>& imageViews = vulkanSwapchain.getImageViews();
     swapChainFrameBuffers.resize(imageViews.size());
     
@@ -410,7 +410,7 @@ void VulkanRenderer::createFramebuffers() {
     }
 }
 
-void VulkanRenderer::createCommandBuffers() {
+void Renderer::createCommandBuffers() {
     commandBuffers.resize(swapChainFrameBuffers.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -460,11 +460,11 @@ void VulkanRenderer::createCommandBuffers() {
     }
 }
 
-void VulkanRenderer::run() {
+void Renderer::run() {
     mainLoop();
 }
 
-void VulkanRenderer::mainLoop() {
+void Renderer::mainLoop() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         handleInput();
@@ -473,7 +473,7 @@ void VulkanRenderer::mainLoop() {
     vkDeviceWaitIdle(vulkanDevice.getDevice());
 }
 
-void VulkanRenderer::handleInput() {
+void Renderer::handleInput() {
     inputHandler.handleKeyboard(window, camera, objectRadius, modelRotation, lightMode,
                                 isLightOff, appliedTexture, textureToggled, keyInteracted);
     
@@ -484,7 +484,7 @@ void VulkanRenderer::handleInput() {
     }
 }
 
-void VulkanRenderer::toggleTexture() {
+void Renderer::toggleTexture() {
     for (auto& mesh : gpuMeshes) {
         if (mesh.hasMapKdInitially)
             continue;
@@ -518,15 +518,15 @@ void VulkanRenderer::toggleTexture() {
     createCommandBuffers();
 }
 
-void VulkanRenderer::destroyDescriptorPool() {
+void Renderer::destroyDescriptorPool() {
     if (descriptorPool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(vulkanDevice.getDevice(), descriptorPool, nullptr);
         descriptorPool = VK_NULL_HANDLE;
     }
 }
 
-void VulkanRenderer::drawFrame() {
-    auto* renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
+void Renderer::drawFrame() {
+    auto* renderer = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
 
     if (!this->keyInteracted && !renderer->inputHandler.isLeftMousePressed() && firstFrameDrawn)
         return;
@@ -557,7 +557,7 @@ void VulkanRenderer::drawFrame() {
     this->keyInteracted = false;
 }
 
-void VulkanRenderer::updateUniformBuffer() {
+void Renderer::updateUniformBuffer() {
     UniformBufferObject ubo{};
 
     ubo.model = my_glm::mat4(1.0f);

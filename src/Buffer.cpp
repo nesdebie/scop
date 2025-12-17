@@ -1,13 +1,13 @@
-#include "VulkanBuffer.h"
+#include "Buffer.h"
 #include <stdexcept>
 
 void vkCheck(VkResult result, const char* msg);
 
-VulkanBuffer::VulkanBuffer() {}
+Buffer::Buffer() {}
 
-VulkanBuffer::~VulkanBuffer() {}
+Buffer::~Buffer() {}
 
-uint32_t VulkanBuffer::findMemoryType(VkPhysicalDevice physicalDevice,
+uint32_t Buffer::findMemoryType(VkPhysicalDevice physicalDevice,
                                       uint32_t typeFilter,
                                       VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -20,7 +20,7 @@ uint32_t VulkanBuffer::findMemoryType(VkPhysicalDevice physicalDevice,
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
-void VulkanBuffer::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
+void Buffer::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
                                 VkDeviceSize size, VkBufferUsageFlags usage,
                                 VkMemoryPropertyFlags properties,
                                 VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -44,7 +44,7 @@ void VulkanBuffer::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
-void VulkanBuffer::createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
+void Buffer::createVertexBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
                                       const std::vector<Vertex>& vertices,
                                       VkBuffer& buffer, VkDeviceMemory& memory) {
     if (vertices.empty())
@@ -77,7 +77,7 @@ void VulkanBuffer::createVertexBuffer(VkDevice device, VkPhysicalDevice physical
     vkUnmapMemory(device, memory);
 }
 
-void VulkanBuffer::createIndexBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
+void Buffer::createIndexBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
                                      const std::vector<uint32_t>& indices,
                                      VkBuffer& buffer, VkDeviceMemory& memory) {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();

@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <cstring>
 
-class VulkanTexture {
+class Texture {
     public:
-        VulkanTexture();
-        ~VulkanTexture();
+        Texture();
+        ~Texture();
 
         void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,
                                VkCommandPool commandPool, VkQueue graphicsQueue,

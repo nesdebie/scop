@@ -1,25 +1,25 @@
-#include "VulkanSwapchain.h"
+#include "Swapchain.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1440
 
 void vkCheck(VkResult result, const char* msg);
 
-VulkanSwapchain::VulkanSwapchain() {
+Swapchain::Swapchain() {
     this->swapChain = VK_NULL_HANDLE;
     this->swapChainImageFormat = VK_FORMAT_UNDEFINED;
 }
 
-VulkanSwapchain::~VulkanSwapchain() {}
+Swapchain::~Swapchain() {}
 
-void VulkanSwapchain::init(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, int graphicsFamily) {
+void Swapchain::init(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, int graphicsFamily) {
     querySwapchainSupport(physicalDevice, surface);
     chooseSwapchainDetails();
     createSwapchain(device, surface, graphicsFamily);
     createImageViews(device);
 }
 
-void VulkanSwapchain::cleanup(VkDevice device) {
+void Swapchain::cleanup(VkDevice device) {
     for (auto imageView : swapChainImageViews) {
         vkDestroyImageView(device, imageView, nullptr);
     }
@@ -31,7 +31,7 @@ void VulkanSwapchain::cleanup(VkDevice device) {
     }
 }
 
-void VulkanSwapchain::querySwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+void Swapchain::querySwapchainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
 
     uint32_t formatCount;
@@ -45,7 +45,7 @@ void VulkanSwapchain::querySwapchainSupport(VkPhysicalDevice physicalDevice, VkS
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
 }
 
-void VulkanSwapchain::chooseSwapchainDetails() {
+void Swapchain::chooseSwapchainDetails() {
     surfaceFormat = surfaceFormats[0];
     for (const auto& availableFormat : surfaceFormats) {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -70,7 +70,7 @@ void VulkanSwapchain::chooseSwapchainDetails() {
     }
 }
 
-void VulkanSwapchain::createSwapchain(VkDevice device, VkSurfaceKHR surface, int graphicsFamily) {
+void Swapchain::createSwapchain(VkDevice device, VkSurfaceKHR surface, int graphicsFamily) {
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
     if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount) {
         imageCount = surfaceCapabilities.maxImageCount;
@@ -106,7 +106,7 @@ void VulkanSwapchain::createSwapchain(VkDevice device, VkSurfaceKHR surface, int
     swapChainExtent = extent;
 }
 
-void VulkanSwapchain::createImageViews(VkDevice device) {
+void Swapchain::createImageViews(VkDevice device) {
     swapChainImageViews.resize(swapChainImages.size());
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         VkImageViewCreateInfo viewInfo{};

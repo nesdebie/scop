@@ -1,5 +1,5 @@
 #include "ObjLoader.h"
-#include "VulkanRenderer.h"
+#include "Renderer.h"
 #include <iostream>
 #include <cfloat>
 
@@ -72,11 +72,11 @@ int main(int ac, char** av) {
 
 
     float radius = my_glm::length(size) * 0.5f;
-    VulkanRenderer renderer;
+    Renderer renderer;
     renderer.objectRadius = radius;
     renderer.cameraDistance = radius * 2.2f;
 
-    std::vector<VulkanRenderer::MeshPackage> meshPackages;
+    std::vector<Renderer::MeshPackage> meshPackages;
     for (const auto& sub : submeshes) {
         meshPackages.push_back({sub.vertices, sub.indices, sub.textureFile, sub.diffuseColor, sub.hasMapKdInitially});
     }

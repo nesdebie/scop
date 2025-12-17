@@ -1,23 +1,23 @@
-#include "VulkanPipeline.h"
+#include "Pipeline.h"
 #include "vertex.h"
 #include <array>
 
 void vkCheck(VkResult result, const char* msg);
 
-VulkanPipeline::VulkanPipeline() {
+Pipeline::Pipeline() {
     this->graphicsPipeline = VK_NULL_HANDLE;
     this->pipelineLayout = VK_NULL_HANDLE;
     this->descriptorSetLayout = VK_NULL_HANDLE;
 }
 
-VulkanPipeline::~VulkanPipeline() {}
+Pipeline::~Pipeline() {}
 
-void VulkanPipeline::init(VkDevice device, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
+void Pipeline::init(VkDevice device, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
     createDescriptorSetLayout(device);
     createGraphicsPipeline(device, renderPass, swapChainExtent);
 }
 
-void VulkanPipeline::cleanup(VkDevice device) {
+void Pipeline::cleanup(VkDevice device) {
     if (graphicsPipeline != VK_NULL_HANDLE) {
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
         graphicsPipeline = VK_NULL_HANDLE;
@@ -32,7 +32,7 @@ void VulkanPipeline::cleanup(VkDevice device) {
     }
 }
 
-void VulkanPipeline::createDescriptorSetLayout(VkDevice device) {
+void Pipeline::createDescriptorSetLayout(VkDevice device) {
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -69,7 +69,7 @@ void VulkanPipeline::createDescriptorSetLayout(VkDevice device) {
             "Failed to create descriptor set layout!");
 }
 
-void VulkanPipeline::createGraphicsPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
+void Pipeline::createGraphicsPipeline(VkDevice device, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
     auto vertShaderCode = readFile("shaders/scop.vert.spv");
     auto fragShaderCode = readFile("shaders/scop.frag.spv");
 
@@ -190,7 +190,7 @@ void VulkanPipeline::createGraphicsPipeline(VkDevice device, VkRenderPass render
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
 }
 
-std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
+std::vector<char> Pipeline::readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("Failed to open file: " + filename);
@@ -205,7 +205,7 @@ std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
     return buffer;
 }
 
-VkShaderModule VulkanPipeline::createShaderModule(VkDevice device, const std::vector<char>& code) {
+VkShaderModule Pipeline::createShaderModule(VkDevice device, const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();

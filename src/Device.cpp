@@ -1,8 +1,8 @@
-#include "VulkanDevice.h"
+#include "Device.h"
 
 void vkCheck(VkResult result, const char* msg);
 
-VulkanDevice::VulkanDevice() {
+Device::Device() {
     this->physicalDevice = VK_NULL_HANDLE;
     this->device = VK_NULL_HANDLE;
     this->graphicsQueue = VK_NULL_HANDLE;
@@ -10,22 +10,22 @@ VulkanDevice::VulkanDevice() {
     this->graphicsFamily = -1;
 }
 
-VulkanDevice::~VulkanDevice() {}
+Device::~Device() {}
 
-void VulkanDevice::init(VkInstance instance, VkSurfaceKHR surface) {
+void Device::init(VkInstance instance, VkSurfaceKHR surface) {
     pickPhysicalDevice(instance);
     findQueueFamilies(surface);
     createLogicalDevice();
 }
 
-void VulkanDevice::cleanup() {
+void Device::cleanup() {
     if (device != VK_NULL_HANDLE) {
         vkDestroyDevice(device, nullptr);
         device = VK_NULL_HANDLE;
     }
 }
 
-void VulkanDevice::pickPhysicalDevice(VkInstance instance) {
+void Device::pickPhysicalDevice(VkInstance instance) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if (deviceCount == 0)
@@ -36,7 +36,7 @@ void VulkanDevice::pickPhysicalDevice(VkInstance instance) {
     physicalDevice = devices[0];
 }
 
-void VulkanDevice::findQueueFamilies(VkSurfaceKHR surface) {
+void Device::findQueueFamilies(VkSurfaceKHR surface) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
@@ -62,7 +62,7 @@ void VulkanDevice::findQueueFamilies(VkSurfaceKHR surface) {
     this->graphicsFamily = graphicsFamily;
 }
 
-void VulkanDevice::createLogicalDevice() {
+void Device::createLogicalDevice() {
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -86,7 +86,7 @@ void VulkanDevice::createLogicalDevice() {
     presentQueue = graphicsQueue;
 }
 
-uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
+uint32_t Device::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 

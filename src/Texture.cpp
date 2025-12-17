@@ -1,13 +1,13 @@
-#include "VulkanTexture.h"
+#include "Texture.h"
 #include <stb_image.h>
 
 void vkCheck(VkResult result, const char* msg);
 
-VulkanTexture::VulkanTexture() {}
+Texture::Texture() {}
 
-VulkanTexture::~VulkanTexture() {}
+Texture::~Texture() {}
 
-uint32_t VulkanTexture::findMemoryType(VkPhysicalDevice physicalDevice,
+uint32_t Texture::findMemoryType(VkPhysicalDevice physicalDevice,
                                        uint32_t typeFilter,
                                        VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -20,7 +20,7 @@ uint32_t VulkanTexture::findMemoryType(VkPhysicalDevice physicalDevice,
     throw std::runtime_error("Failed to find suitable memory type!");
 }
 
-void VulkanTexture::createImage(VkDevice device, VkPhysicalDevice physicalDevice,
+void Texture::createImage(VkDevice device, VkPhysicalDevice physicalDevice,
                                 uint32_t width, uint32_t height, VkFormat format,
                                 VkImageTiling tiling, VkImageUsageFlags usage,
                                 VkMemoryPropertyFlags properties,
@@ -54,7 +54,7 @@ void VulkanTexture::createImage(VkDevice device, VkPhysicalDevice physicalDevice
     vkBindImageMemory(device, image, imageMemory, 0);
 }
 
-void VulkanTexture::transitionImageLayout(VkDevice device, VkCommandPool commandPool,
+void Texture::transitionImageLayout(VkDevice device, VkCommandPool commandPool,
                                           VkQueue graphicsQueue, VkImage image,
                                           VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkCommandBufferAllocateInfo allocInfo{};
@@ -118,7 +118,7 @@ void VulkanTexture::transitionImageLayout(VkDevice device, VkCommandPool command
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-void VulkanTexture::copyBufferToImage(VkDevice device, VkCommandPool commandPool,
+void Texture::copyBufferToImage(VkDevice device, VkCommandPool commandPool,
                                       VkQueue graphicsQueue, VkBuffer buffer,
                                       VkImage image, uint32_t width, uint32_t height) {
     VkCommandBufferAllocateInfo allocInfo{};
@@ -160,7 +160,7 @@ void VulkanTexture::copyBufferToImage(VkDevice device, VkCommandPool commandPool
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-VkImageView VulkanTexture::createImageView(VkDevice device, VkImage image, VkFormat format) {
+VkImageView Texture::createImageView(VkDevice device, VkImage image, VkFormat format) {
     VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     if (format == VK_FORMAT_D32_SFLOAT || format == VK_FORMAT_D32_SFLOAT_S8_UINT)
         aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -181,7 +181,7 @@ VkImageView VulkanTexture::createImageView(VkDevice device, VkImage image, VkFor
     return imageView;
 }
 
-void VulkanTexture::createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,
+void Texture::createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,
                                        VkCommandPool commandPool, VkQueue graphicsQueue,
                                        const std::string& path, VkImage& image,
                                        VkDeviceMemory& memory, VkImageView& view,

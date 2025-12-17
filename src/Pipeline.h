@@ -7,10 +7,10 @@
 #include <fstream>
 #include <stdexcept>
 
-class VulkanPipeline {
+class Pipeline {
     public:
-        VulkanPipeline();
-        ~VulkanPipeline();
+        Pipeline();
+        ~Pipeline();
 
         void init(VkDevice device, VkRenderPass renderPass, VkExtent2D swapChainExtent);
         void cleanup(VkDevice device);

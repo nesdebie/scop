@@ -11,11 +11,11 @@
 #include <GLFW/glfw3.h>
 
 #include "vertex.h"
-#include "VulkanDevice.h"
-#include "VulkanSwapchain.h"
-#include "VulkanPipeline.h"
-#include "VulkanBuffer.h"
-#include "VulkanTexture.h"
+#include "Device.h"
+#include "Swapchain.h"
+#include "Pipeline.h"
+#include "Buffer.h"
+#include "Texture.h"
 #include "Camera.h"
 #include "InputHandler.h"
 
@@ -23,10 +23,10 @@
 #define WINDOW_HEIGHT 1440
 #define WINDOW_DEPTH 42.0f
 
-class VulkanRenderer {
+class Renderer {
     public:
-        VulkanRenderer();
-        ~VulkanRenderer();
+        Renderer();
+        ~Renderer();
 
         struct MeshPackage {
             std::vector<Vertex> vertices;
@@ -84,11 +84,11 @@ class VulkanRenderer {
         VkInstance          instance;
         VkSurfaceKHR        surface;
         
-        VulkanDevice        vulkanDevice;
-        VulkanSwapchain     vulkanSwapchain;
-        VulkanPipeline      vulkanPipeline;
-        VulkanBuffer        vulkanBuffer;
-        VulkanTexture       vulkanTexture;
+        Device        vulkanDevice;
+        Swapchain     vulkanSwapchain;
+        Pipeline      vulkanPipeline;
+        Buffer        vulkanBuffer;
+        Texture       vulkanTexture;
         Camera              camera;
         InputHandler        inputHandler;
 

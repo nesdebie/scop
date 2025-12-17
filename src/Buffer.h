@@ -6,10 +6,10 @@
 #include <cstring>
 #include "vertex.h"
 
-class VulkanBuffer {
+class Buffer {
     public:
-        VulkanBuffer();
-        ~VulkanBuffer();
+        Buffer();
+        ~Buffer();
 
         void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice,
                          VkDeviceSize size, VkBufferUsageFlags usage,

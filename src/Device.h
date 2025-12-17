@@ -5,10 +5,10 @@
 #include <vector>
 #include <stdexcept>
 
-class VulkanDevice {
+class Device {
     public:
-        VulkanDevice();
-        ~VulkanDevice();
+        Device();
+        ~Device();
 
         void init(VkInstance instance, VkSurfaceKHR surface);
         void cleanup();
