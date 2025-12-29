@@ -6,6 +6,12 @@
 
 class Camera;
 
+/**
+ * Processes user input from keyboard and mouse.
+ * 
+ * Handles camera controls, model rotation, lighting modes, and texture
+ * toggling through keyboard and mouse interactions.
+ */
 class InputHandler {
     public:
         InputHandler();

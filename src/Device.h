@@ -5,6 +5,12 @@
 #include <vector>
 #include <stdexcept>
 
+/**
+ * Manages Vulkan physical and logical device setup.
+ * 
+ * Handles device selection, queue family discovery, and logical device
+ * creation for graphics and presentation operations.
+ */
 class Device {
     public:
         Device();

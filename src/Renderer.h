@@ -23,6 +23,12 @@
 #define WINDOW_HEIGHT 1440
 #define WINDOW_DEPTH 42.0f
 
+/**
+ * Main rendering engine orchestrating the Vulkan render loop.
+ * 
+ * Coordinates all Vulkan components (device, swapchain, pipeline, buffers)
+ * to render 3D models with textures, lighting, and camera controls.
+ */
 class Renderer {
     public:
         Renderer();
@@ -118,13 +124,11 @@ class Renderer {
         bool keyInteracted;
         
         void initWindow();
-        void mainLoop();
         void handleInput();
         void drawFrame();
         void updateUniformBuffer();
         void toggleTexture();
 
-        /* VULKAN INIT HELPER FUNCTIONS */
         void createInstance();
         void createSurface();
         void createCommandPool();

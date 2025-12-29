@@ -7,6 +7,12 @@
 
 #define MAX_LIGHTS 8
 
+/**
+ * GPU uniform data for shader transformation and lighting.
+ * 
+ * Contains matrices (model, view, projection), camera position, lighting
+ * parameters, and material properties aligned for GPU std140 layout.
+ */
 struct alignas(16) UniformBufferObject {
     my_glm::mat4 model;                       // offset 0
     my_glm::mat4 view;                        // offset 64
@@ -18,7 +24,6 @@ struct alignas(16) UniformBufferObject {
     my_glm::vec3 objectCenter;                // offset 208 (12 bytes)
     float     spotCosCutoff;               // offset 220 (4 bytes)
 
-    // std140 requires array-stride of 16 bytes:
     my_glm::vec4 lightPositions[MAX_LIGHTS];  // offset 224 (8×16 = 128 bytes)
     my_glm::vec4 lightIntensities[MAX_LIGHTS];// offset 352 (8×16 = 128 bytes)
 
@@ -28,9 +33,12 @@ struct alignas(16) UniformBufferObject {
     int       _pad1;                    // offset 492 (4 bytes)
 };
 
-
-
-
+/**
+ * Vertex data structure for 3D mesh geometry.
+ * 
+ * Contains position, normal, and texture coordinates with methods
+ * to describe vertex input binding for Vulkan pipeline.
+ */
 struct Vertex {
     my_glm::vec3 position;
     my_glm::vec3 normal;

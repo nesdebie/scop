@@ -13,6 +13,12 @@
 # define INVALID_OBJ_FILE_ERROR 1
 # define VULKAN_RENDERER_ERROR 2
 
+/**
+ * Represents a mesh sub-object with material properties.
+ * 
+ * Contains vertex and index data along with material information from
+ * MTL files (colors, textures, and lighting properties).
+ */
 struct SubMesh {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;

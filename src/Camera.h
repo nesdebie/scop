@@ -3,6 +3,12 @@
 
 #include "my_glm.h"
 
+/**
+ * Controls camera position and orientation in 3D space.
+ * 
+ * Manages camera view transformations using spherical coordinates
+ * (yaw, pitch, distance) and model offset for orbiting around objects.
+ */
 class Camera {
     public:
         Camera();

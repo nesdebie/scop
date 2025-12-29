@@ -6,6 +6,12 @@
 #include <cstring>
 #include "vertex.h"
 
+/**
+ * Manages Vulkan buffer creation and memory allocation.
+ * 
+ * Handles creation of vertex and index buffers for GPU memory,
+ * including memory type selection based on device properties.
+ */
 class Buffer {
     public:
         Buffer();

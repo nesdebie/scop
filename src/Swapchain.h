@@ -5,6 +5,12 @@
 #include <vector>
 #include <stdexcept>
 
+/**
+ * Manages Vulkan swapchain for presenting rendered images.
+ * 
+ * Handles swapchain creation, format selection, and image view management
+ * for double/triple buffering and display synchronization.
+ */
 class Swapchain {
     public:
         Swapchain();

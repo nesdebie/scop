@@ -7,6 +7,12 @@
 #include <fstream>
 #include <stdexcept>
 
+/**
+ * Manages Vulkan graphics pipeline and shader setup.
+ * 
+ * Creates and configures the graphics pipeline including shader modules,
+ * vertex input, rasterization, and descriptor set layouts.
+ */
 class Pipeline {
     public:
         Pipeline();

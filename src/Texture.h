@@ -6,6 +6,12 @@
 #include <stdexcept>
 #include <cstring>
 
+/**
+ * Handles texture loading and Vulkan image creation.
+ * 
+ * Manages texture image loading from files, GPU memory allocation,
+ * image view creation, and layout transitions for shader sampling.
+ */
 class Texture {
     public:
         Texture();

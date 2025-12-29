@@ -460,11 +460,8 @@ void Renderer::createCommandBuffers() {
     }
 }
 
-void Renderer::run() {
-    mainLoop();
-}
 
-void Renderer::mainLoop() {
+void Renderer::run() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         handleInput();
