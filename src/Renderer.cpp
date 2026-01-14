@@ -160,7 +160,7 @@ bool Renderer::init(const std::vector<MeshPackage>& meshPackages) {
     createFramebuffers();
     createCommandBuffers();
     
-    camera.init(objectRadius);
+    camera.init(cameraDistance);  // Use the cameraDistance set in main.cpp
     inputHandler.init();
     
     return true;
@@ -471,7 +471,7 @@ void Renderer::run() {
 }
 
 void Renderer::handleInput() {
-    inputHandler.handleKeyboard(window, camera, objectRadius, modelRotation, lightMode,
+    inputHandler.handleKeyboard(window, camera, objectRadius, cameraDistance, modelRotation, lightMode,
                                 isLightOff, appliedTexture, textureToggled, keyInteracted);
     
     if (textureToggled != (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)) {

@@ -14,8 +14,8 @@ class Camera {
         Camera();
         ~Camera();
 
-        void init(float objectRadius);
-        void reset(float objectRadius);
+        void init(float initialDistance);
+        void reset(float initialDistance);
 
         my_glm::mat4 computeViewMatrix() const;
         my_glm::vec3 getCameraPosition() const;

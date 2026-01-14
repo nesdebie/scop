@@ -21,7 +21,7 @@
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1440
-#define WINDOW_DEPTH 42.0f
+#define WINDOW_DEPTH 1000.0f  // Increased far plane for large models
 
 /**
  * Main rendering engine orchestrating the Vulkan render loop.

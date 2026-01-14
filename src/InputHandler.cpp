@@ -2,8 +2,6 @@
 #include "Camera.h"
 #include <cmath>
 
-#define ROTATION_SPEED 0.01f
-
 InputHandler::InputHandler() {
     this->leftMousePressed = false;
     this->prevLState = GLFW_RELEASE;
@@ -24,11 +22,12 @@ void InputHandler::init() {
     this->lastMouseY = 0.0;
 }
 
-void InputHandler::handleKeyboard(GLFWwindow* window, Camera& camera, float objectRadius,
+void InputHandler::handleKeyboard(GLFWwindow* window, Camera& camera, float objectRadius, float cameraDistance,
                                   my_glm::vec3& modelRotation, int& lightMode,
                                   int& isLightOff, int& appliedTexture, bool& textureToggled,
                                   bool& keyInteracted) {
-    float adjustedRotation = ROTATION_SPEED * std::log1p(objectRadius + 1.0f) * objectRadius / 10.0f;
+    // Scale rotation speed based on model size for consistent feel
+    float adjustedRotation = BASE_ROTATION_SPEED * (objectRadius / 2.0f);
     
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         camera.updateYaw(-adjustedRotation);
@@ -53,7 +52,7 @@ void InputHandler::handleKeyboard(GLFWwindow* window, Camera& camera, float obje
     }
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-        camera.reset(objectRadius);
+        camera.reset(cameraDistance);  // Use the cameraDistance from main.cpp
         modelRotation = my_glm::vec3(0.0f);
         keyInteracted = true;
     }

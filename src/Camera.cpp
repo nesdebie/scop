@@ -10,17 +10,17 @@ Camera::Camera() {
 
 Camera::~Camera() {}
 
-void Camera::init(float objectRadius) {
+void Camera::init(float initialDistance) {
     this->cameraYaw = 0.0f;
     this->cameraPitch = 0.0f;
-    this->cameraDistance = objectRadius * 2.2f;
+    this->cameraDistance = initialDistance;
     this->modelOffset = my_glm::vec3(0.0f);
 }
 
-void Camera::reset(float objectRadius) {
+void Camera::reset(float initialDistance) {
     this->cameraYaw = 0.0f;
     this->cameraPitch = 0.0f;
-    this->cameraDistance = objectRadius * 2.2f;
+    this->cameraDistance = initialDistance;
     this->modelOffset = my_glm::vec3(0.0f);
 }
 
@@ -54,7 +54,7 @@ void Camera::updatePitch(float delta) {
 
 void Camera::updateDistance(float delta) {
     cameraDistance += delta;
-    cameraDistance = my_glm::clamp(cameraDistance, 0.5f, 20.0f);
+    cameraDistance = my_glm::clamp(cameraDistance, 0.5f, 500.0f);  // Increased max distance for large models
 }
 
 void Camera::updateOffset(const my_glm::vec3& delta) {

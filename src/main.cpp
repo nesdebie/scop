@@ -70,11 +70,19 @@ int main(int ac, char** av) {
     }
     my_glm::vec3 size = maxBounds - minBounds;
 
-
-    float radius = my_glm::length(size) * 0.5f;
+    // Debug: print model dimensions
+    std::cout << "Model dimensions: X=" << size.x << " Y=" << size.y << " Z=" << size.z << std::endl;
+    
+    // Use the maximum dimension to calculate radius (handles wide/tall/long models)
+    float maxDimension = std::max({size.x, size.y, size.z});
+    float radius = maxDimension * 0.5f;
+    
+    std::cout << "Calculated radius: " << radius << std::endl;
+    std::cout << "Camera distance: " << (radius * 3.5f) << std::endl;
+    
     Renderer renderer;
     renderer.objectRadius = radius;
-    renderer.cameraDistance = radius * 2.2f;
+    renderer.cameraDistance = radius * 3.5f;  // Increased from 2.2f to 3.5f for better viewing distance
 
     std::vector<Renderer::MeshPackage> meshPackages;
     for (const auto& sub : submeshes) {

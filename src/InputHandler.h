@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include "my_glm.h"
 
+#define BASE_ROTATION_SPEED 0.005f
+
 class Camera;
 
 /**
@@ -18,7 +20,7 @@ class InputHandler {
         ~InputHandler();
 
         void init();
-        void handleKeyboard(GLFWwindow* window, Camera& camera, float objectRadius, 
+        void handleKeyboard(GLFWwindow* window, Camera& camera, float objectRadius, float cameraDistance,
                            my_glm::vec3& modelRotation, int& lightMode,
                            int& isLightOff, int& appliedTexture, bool& textureToggled,
                            bool& keyInteracted);
